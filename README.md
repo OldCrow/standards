@@ -36,6 +36,18 @@ Reference these documents by URL. A `~/Development/...` path resolves on
 exactly one machine; these are meant to work from any of them, from CI,
 and from a browser.
 
+## Contributions
+
+This repository is published to be read, not contributed to — it records
+decisions for a specific set of projects, so a change here without the
+matching change in those projects is not a change worth taking. Pull
+requests are not accepted; read, fork, or copy freely under the MIT
+licence.
+
+`main` takes direct pushes from the owner only, and a ruleset enforces
+**verified signatures** on every commit, with no bypass — force-pushes and
+branch deletion are refused as well.
+
 [libhmm]: https://github.com/OldCrow/libhmm
 [pylibhmm]: https://github.com/OldCrow/pylibhmm
 [libstats]: https://github.com/OldCrow/libstats
