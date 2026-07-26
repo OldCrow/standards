@@ -418,6 +418,14 @@ Still open — future candidates, not blockers:
 - [OPEN] libhmm deprecation shim removal at v4.3.0, together with bumping
   pylibhmm's FetchContent pin and dropping its old-name forced-OFF lines.
 - [OPEN] corvus fetched-Highway install gate — tracked in corvus PLAN.md.
+- [OPEN] Formatter/linter configs are not fleet-standard and were left
+  alone during the 2026-07-26 standards move: libhmm's `.clang-format`
+  derives from LLVM, libstats' from Google, with different naming rules
+  and include-ordering policy; `.clang-tidy` check sets differ likewise;
+  corvus and the two pylib* repos carry neither. Unifying them is a code
+  change across every source file (reformat + fixups), not a config move
+  — needs its own effort with its own verification, and a decision on
+  which base style wins.
 
 Retired 2026-07-26: libstats cmake/SIMDDetection.cmake cmake-format
 conformance (closed by 52da6c2 in the SIMD hygiene round above).
