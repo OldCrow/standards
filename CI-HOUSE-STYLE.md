@@ -34,17 +34,25 @@ silicon it draws. Rules 3 and 4 both follow from the second.
 `cmake --build --parallel` with no argument means unlimited `make -j`,
 which OOM-kills a 7 GB runner. Bound every build step to memory:
 
+The fleet idiom, verbatim (libstats `ci.yml`, `avx512-testing.yml`):
+
 ```yaml
 - name: Build
   run: |
-    MEM_GB=$(awk '/MemAvailable/ {print int($2/1024/1024)}' /proc/meminfo)
-    JOBS=$(( MEM_GB / 2 )); [ "$JOBS" -gt "$(nproc)" ] && JOBS=$(nproc)
-    [ "$JOBS" -lt 1 ] && JOBS=1
-    cmake --build build --parallel "$JOBS"
+    MEM_GB=$(awk '/MemAvailable/{printf "%d", $2/1048576}' /proc/meminfo 2>/dev/null || echo 4)
+    CPU=$(nproc 2>/dev/null || echo 2)
+    MEM_JOBS=$(( MEM_GB / 2 ))
+    JOBS=$(( MEM_JOBS < CPU ? MEM_JOBS : CPU ))
+    JOBS=$(( JOBS < 1 ? 1 : JOBS ))
+    echo "Parallel build jobs: ${JOBS}"
+    cmake --build build --parallel "${JOBS}"
 ```
 
 Divide by 3 rather than 2 for sanitizer builds (ASan+UBSan roughly
-doubles peak memory per TU).
+doubles peak memory per TU). The `|| echo` fallbacks keep the block
+portable to runners without `/proc/meminfo` or `nproc`; echoing the
+chosen count is what lets a later OOM be diagnosed from the log alone.
+macOS runners (14 GB) use the full logical CPU count.
 
 **Recognize the signature**: exit 143, "runner received a shutdown
 signal", mass `Terminated` messages, dying at 2–3 minutes. That reads as
