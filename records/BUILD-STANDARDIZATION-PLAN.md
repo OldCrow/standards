@@ -415,8 +415,6 @@ Still open — future candidates, not blockers:
 - [OPEN] libhmm macOS `-undefined dynamic_lookup` on the shared lib —
   moved to target scope verbatim in 3A; whether to drop it needs its own
   investigation.
-- [OPEN] libhmm deprecation shim removal at v4.3.0, together with bumping
-  pylibhmm's FetchContent pin and dropping its old-name forced-OFF lines.
 - [OPEN] corvus fetched-Highway install gate — tracked in corvus PLAN.md.
 - [OPEN] Formatter/linter configs are not fleet-standard and were left
   alone during the 2026-07-26 standards move: libhmm's `.clang-format`
@@ -429,3 +427,9 @@ Still open — future candidates, not blockers:
 
 Retired 2026-07-26: libstats cmake/SIMDDetection.cmake cmake-format
 conformance (closed by 52da6c2 in the SIMD hygiene round above).
+
+Retired 2026-08-16: libhmm deprecation shim removal at v4.3.0 — all three
+halves landed together: libhmm v4.3.0 shipped with the shim removed, and
+pylibhmm bumped its FetchContent pin v4.2.5 → v4.3.0 and deleted the seven
+old-name forced-OFF lines in the same change (pylibhmm c48008c, released
+as v0.10.0).
