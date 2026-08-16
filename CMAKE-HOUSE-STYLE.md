@@ -126,6 +126,21 @@ files, pkg-config file. Never tests, examples, tools, or benchmarks.
   `write_basic_package_version_file(... COMPATIBILITY SameMajorVersion)`.
 - Config files call `find_dependency()` for every dependency of an exported
   target (Threads, TBB, OpenMP, hwy, …).
+- A configure-time probe whose result selects between implementations in an
+  **installed header** travels in a generated, installed config header —
+  `configure_file` template in `cmake/`, installed beside the hand-written
+  headers, the same mechanism as the version header (§10) — never in
+  `target_compile_definitions`. A target-scoped macro either reaches only
+  the TUs that target compiles (libhmm #75: a PRIVATE define meant the
+  Tier 1 Bessel path was never under test, the library and its own tests
+  committed an ODR violation on the same inline functions, and every
+  `find_package` consumer silently got the fallback tier) or is stripped in
+  transit (libstats #97: `$<LINK_ONLY:>` propagates the link and drops
+  usage requirements, so the installed export never carried the macro —
+  same ODR violation, same silent downgrade). A header also covers
+  pkg-config and plain-include-path consumers, and keeps one source of
+  truth. Pair the probe with a two-sided guard that can actually fail
+  ([CI house style §4](CI-HOUSE-STYLE.md)).
 - Shared libs: `VERSION ${PROJECT_VERSION}` + `SOVERSION
   ${PROJECT_VERSION_MAJOR}`; macOS `INSTALL_NAME_DIR "@rpath"` +
   `MACOSX_RPATH`; Linux SONAME via the standard properties (no manual
