@@ -12,7 +12,7 @@ undocumented deviation is a defect.
 | Document | Covers |
 |---|---|
 | [CMAKE-HOUSE-STYLE.md](CMAKE-HOUSE-STYLE.md) | Target-first CMake: naming, scoping, generator expressions, build types, options, the install contract, dependencies, presets |
-| [CI-HOUSE-STYLE.md](CI-HOUSE-STYLE.md) | GitHub Actions: runner budget, bounded parallelism, ISA hazards on hosted runners, action pinning, workflow linting, what CI must exercise |
+| [CI-HOUSE-STYLE.md](CI-HOUSE-STYLE.md) | GitHub Actions: runner budget, bounded parallelism, ISA hazards on hosted runners, action pinning, workflow linting, what CI must exercise, wheel builds |
 | [DOC-CONVENTIONS.md](DOC-CONVENTIONS.md) | What `AGENTS.md`, `PLAN.md`, and the other repo documents are each for, and how they cross-reference |
 
 ## Records

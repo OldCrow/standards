@@ -90,6 +90,22 @@ A job that infers its own configuration from the host is not evidence.
 - Where a green run only re-exercises a fix if it draws particular
   hardware, say so in the workflow comment and carry it as a watch item.
   A green that skipped the step is not a green.
+- **A guard must be able to fail, and that is proved by running it once
+  against the broken build, on the platform it targets** — not by reading
+  it. libstats #97 shipped two guards in a row that were structurally
+  inert and looked fine in review: a *one-sided* assertion ("Tier 2 is
+  within 1.6e-7") that also passes on a Tier 1 build, so it could never
+  notice the regression it existed for; then a guard placed in a
+  timing-labelled binary that the correctness run excludes by label, so a
+  full green CI proved only that it compiled. libhmm's #75 fix ran its
+  new guard against the pre-fix build and confirmed the failure with its
+  diagnostic; libstats did not, and that omission is what let the second
+  inert guard through.
+- Configuration guards are **two-sided**: the guard decides the expected
+  answer independently (e.g. via `__cpp_lib_math_special_functions`
+  whether the compiler has the C++17 special math functions), then
+  requires the library to agree. Asserting only that the fallback meets
+  the fallback's tolerance verifies nothing about which path was built.
 
 ## 5. Actions hygiene
 
@@ -170,7 +186,47 @@ resurrecting the old prefix.
   only, never on PR. `paths-ignore` is not evaluated for a new tag, so it
   cannot skip a release.
 
-## 9. Verification discipline
+## 9. Wheel builds (pylibhmm, pylibstats)
+
+The contract settled at pylibhmm v0.10.0 and pylibstats v0.5.0
+(2026-08-16). Every rule failed silently before it was written down.
+
+- **`CIBW_BUILD` allowlist, never a `CIBW_SKIP` denylist.** The denylist
+  cannot express the invariant it exists for and fails open: in one
+  pylibstats tag run, `cp314-*` did not match the free-threaded `cp314t-`
+  prefix, and nothing named cp315 because 3.15 did not exist when the
+  line was written — so the run built and died on interpreters that were
+  never in the intended set. An allowlist fails closed, and 3.15+ needs
+  no workflow change until it is deliberately admitted. `musllinux` stays
+  a `CIBW_SKIP` entry: it is an ABI axis orthogonal to the interpreter
+  set, and SKIP is applied after BUILD.
+- **The allowlist is *defined* as what the `ci.yml` matrix covers.** The
+  two must agree or the allowlist is decoration — pylibstats shipped
+  cp314 wheels from 0.1.5 onward while `ci.yml` never tested 3.14.
+- **`requires-python` moves in the same change as the built set.**
+  pylibhmm 0.9.2/0.9.3 declared `>= 3.11` on PyPI while shipping no
+  cp311 wheel: a 3.11 user passes the metadata gate, finds no wheel, and
+  pip silently falls back to compiling the sdist on their machine.
+- **The abi3 pairing is one mechanism in two files — set both or
+  neither.** `wheel.py-api` only *tags* the wheel; nanobind's
+  `STABLE_ABI` gates on `TARGET Python::SABIModule`, which exists only
+  when `find_package(Python)` is given `${SKBUILD_SABI_COMPONENT}`. The
+  key without the component produces a wheel tagged `cp312-abi3` around a
+  version-locked binary — installs on 3.13+, then fails to import, and
+  nothing warns at any layer. CI is structurally blind to it:
+  cibuildwheel tests each wheel on the interpreter that built it, the one
+  version where the broken form still works. Verify by inspecting the
+  module's link target (`_core.pyd` → `python3.dll`, not
+  `_core.cp312-*.pyd` → `python312.dll`), and keep the later
+  interpreters in the allowlist even though they add no wheel —
+  installing the abi3 wheel on an interpreter it was not built with is
+  the only check that closes the class.
+- **Pin cibuildwheel.** Unpinned, the set of interpreters it knows about
+  grows on upstream's schedule — which is what flipped a passing
+  2026-08-01 canary to a tag-day failure with no commit in between. Same
+  reasoning as the action pinning in §5.
+
+## 10. Verification discipline
 
 - The first real CI run is the gate. Local `actionlint`/`zizmor` do not
   reproduce reviewdog's severity mapping or zizmor's exit behavior, and
