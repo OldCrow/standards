@@ -408,14 +408,12 @@ flags so SIMD coverage is unchanged. Warning suppression rejected (it
 guards real 512-bit-promotion SIGILL risk).
 
 Still open — future candidates, not blockers:
-- [OPEN] .pc files bake CMAKE_INSTALL_PREFIX at configure time (Phase 1
-  note; cosmetic for current flows).
 - [OPEN] pylibhmm/pylibstats CI exercising the parents' installed-package
   path (Phase 1 deferral; natural fit at the next parent release).
-- [OPEN] libhmm macOS `-undefined dynamic_lookup` on the shared lib —
-  moved to target scope verbatim in 3A; whether to drop it needs its own
-  investigation.
-- [OPEN] corvus fetched-Highway install gate — tracked in corvus PLAN.md.
+  Re-verified still open 2026-08-23: no workflow in either repo installs
+  the parent or sets a `*_DIR`; pylibstats has `find_package(libstats
+  2.3.0 QUIET)` that CI never satisfies, pylibhmm has no
+  `find_package(libhmm)` at all.
 - [OPEN] Formatter/linter configs are not fleet-standard and were left
   alone during the 2026-07-26 standards move: libhmm's `.clang-format`
   derives from LLVM, libstats' from Google, with different naming rules
@@ -424,6 +422,23 @@ Still open — future candidates, not blockers:
   change across every source file (reformat + fixups), not a config move
   — needs its own effort with its own verification, and a decision on
   which base style wins.
+
+Retired 2026-08-23: .pc files baking CMAKE_INSTALL_PREFIX — fixed in all
+three C++ repos the same day (`prefix=${pcfiledir}/<computed rel path>`,
+libdir/includedir made prefix-relative); verified against a second
+`cmake --install --prefix` and a moved tree on the M1.
+
+Retired 2026-08-23: libhmm macOS `-undefined dynamic_lookup` — the
+investigation ran on the M1: the flag masked zero flat-namespace symbols
+(every undefined symbol resolves to libc++/libSystem; relink without it
+succeeds) and forced ld64's legacy LC_DYLD_INFO format where dropping it
+yields LC_DYLD_CHAINED_FIXUPS. Removed from libhmm; ld64's default
+`-undefined error` now mirrors the Linux `--no-undefined` intent.
+
+Retired 2026-08-23: corvus fetched-Highway install gate — not an open
+item after all: corvus PLAN.md (2026-08-06, First release) ratified the
+status quo by design (FetchContent builds are build-tree-only; revisit
+only if packaging starts). The entry here was stale wording, not a task.
 
 Retired 2026-07-26: libstats cmake/SIMDDetection.cmake cmake-format
 conformance (closed by 52da6c2 in the SIMD hygiene round above).
