@@ -57,5 +57,19 @@ ledger at the end of
 `main` enforces verified signatures with no bypass, and refuses
 force-pushes and branch deletion. An unsigned commit is rejected at push
 time, so a stale `gpg-agent` fails loudly rather than landing unsigned
-work — resync it (`gpgconf --kill gpg-agent && gpg-agent --daemon
---enable-ssh-support`) rather than working around the rule.
+work — resync it with
+`gpgconf --kill gpg-agent scdaemon && gpgconf --launch gpg-agent` rather
+than working around the rule. On Windows run that from PowerShell against
+the native GnuPG install, which owns the OpenSSH pipe and is not launched
+at login; a gpg command run from Git Bash spawns the MSYS agent instead,
+whose scdaemon takes the card exclusively and blocks the native one.
+
+A commit can also sign cleanly and still show unverified on GitHub. That
+is `bad_email` — the author address is not a UID on the signing key, and
+it fails silently in every repo that does not enforce. All fleet clones
+commit as the key's primary UID (`gdwolfman@icloud.com`); this was made
+uniform 2026-08-23, retiring a repo-local override that had been masking
+the problem here. Where chezmoi manages `~/.gitconfig`, that address is
+rendered from `[data].email` in the machine-local
+`~/.config/chezmoi/chezmoi.toml` — `git config --global user.email` is
+reverted at the next `chezmoi apply`.
