@@ -24,8 +24,9 @@ grep -rn "OldCrow/standards" ~/Development/{libhmm,pylibhmm,libstats,pylibstats,
 
 ## Architecture
 
-- `*-HOUSE-STYLE.md`, `DOC-CONVENTIONS.md` — the standards themselves.
-  Current, binding, edited in place.
+- `*-HOUSE-STYLE.md`, `DOC-CONVENTIONS.md`, `WINDOWS-TOOLCHAIN.md`,
+  `SESSION-START.md` — the standards themselves. Current, binding, edited
+  in place.
 - `records/` — completed cross-repo efforts. Historical; edit only to
   correct the record or to retire an item from a ledger it carries.
 
