@@ -40,6 +40,22 @@ directories. Prefer `vswhere` over hard-coding any of them.
   -learning heuristic firing on unsigned, locally linked binaries, not a real
   finding. **If a test executable vanishes after a successful build, suspect
   quarantine before suspecting the build.**
+- **Set `ForegroundLockTimeout` to 0**, then log out and back in:
+  `reg add "HKCU\Control Panel\Desktop" /v ForegroundLockTimeout /t REG_DWORD /d 0 /f`.
+  The Windows default is 200000 ms, during which a background process cannot
+  raise a window. gpg-agent is one, so the pinentry it spawns opens without
+  focus and times out. It never reports a permission problem: a commit fails
+  `gpg: signing failed: Timeout`, an SSH push or fetch fails `agent refused
+  operation`, and a foreground command can simply sit for minutes with the
+  dialog behind the terminal. On 2026-09-07 that cost four failures across two
+  repos and one killed command. Recovery without the registry change: click
+  the unfocused pinentry in the taskbar, enter the PIN, retry — and batch
+  signed operations, since a commit and its push share one 600 s PIN cache.
+  **Not build-only:** anything authenticating through the YubiKey is affected,
+  including `git` in repos outside this fleet. **Until it is set, a YubiKey
+  touch goes to whatever window actually holds focus — for a key in OTP mode,
+  that types a one-time password into that window.** The value is per-user, so
+  each profile needs it; chezmoi does not manage the Windows registry.
 
 ## 2. Per-session toolchain activation
 
