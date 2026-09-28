@@ -81,7 +81,7 @@ it, the post-swap NEON differences confound the two.
 |---|---|---|---|
 | 7 | Spike fleet half: branch, measurements, apply the pre-registered criteria | libhmm #106 (runbook on the issue) | All three, quiet |
 | 8 | Fit accuracy and kernel hygiene patch, trimmed or not by task 7's verdict | libhmm milestone #5; #94 needs its benchmark pass before the trim | All three |
-| 9 | pylibhmm pin bump | Follows task 8 | Any, plus CI |
+| 9 | pylibhmm pin bump | Follows task 8; needs side task J done first | Any, plus CI |
 
 ## Side tasks (no dependency on the spine)
 
@@ -95,8 +95,8 @@ it, the post-swap NEON differences confound the two.
 | F | `errorf_inv` exposure investigation | libhmm #103 | Any |
 | G | Radar jamming calculator | ewcalc #88; needs the physical book pins | Windows and Linux UI |
 | H | Plan hygiene | libstats GitHub reconcile (last done 2026-09-05) and milestone #8 bucketing pass | Any |
-| I | Merge the open dependabot PRs | libstats #153, #155; libhmm #109; corvus #40; ewcalc #92, #93; pylibstats #23; pylibhmm #32. Merge libstats #153 before side task A starts | Any |
-| J | pylibstats CI: the `ubuntu-latest / Python 3.14t` job fails at CMake Python discovery | Seen on pylibstats #23, unrelated to that PR's change; cause unconfirmed | CI only |
+| ~~I~~ | ~~Merge the open dependabot PRs~~ | DONE 2026-09-28: all eight merged; `main` CI green in libstats, libhmm, corvus and ewcalc | — |
+| J | pylibstats and pylibhmm CI: the `ubuntu-latest / Python 3.14t` job fails at CMake Python discovery on `main` | scikit-build-core 1.0.3 passes, 1.1.0 (2026-09-25) fails, all else equal; detail in both repos' `PLAN.md`. Capped `<1.1` on 2026-09-28 as a holding measure; still open: reproduce, file upstream, lift the cap. Tasks 5 and 9 need green `main` CI, which the cap should restore | CI only |
 
 ## Open decisions [user]
 
@@ -113,4 +113,4 @@ it, the post-swap NEON differences confound the two.
 3. Task 1 on each machine, then task 2.
 4. Task 7 alongside task 2, on whichever machine is free.
 
-Side tasks A, E, F, H, I and J fit any gap.
+Side tasks A, E, F, H and J fit any gap.
