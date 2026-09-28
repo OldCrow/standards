@@ -27,8 +27,12 @@ grep -rn "OldCrow/standards" ~/Development/{libhmm,pylibhmm,libstats,pylibstats,
 - `*-HOUSE-STYLE.md`, `DOC-CONVENTIONS.md`, `WINDOWS-TOOLCHAIN.md`,
   `SESSION-START.md` — the standards themselves. Current, binding, edited
   in place.
-- `records/` — completed cross-repo efforts. Historical; edit only to
-  correct the record or to retire an item from a ledger it carries.
+- `records/` — cross-repo efforts. Completed ones are historical; edit
+  only to correct the record or to retire an item from a ledger it
+  carries. One record may be ACTIVE: currently
+  `records/CORVUS-ADOPTION-WORKPLAN.md`, which sequences work across
+  repos and machines. Strike its rows as tasks finish; project state
+  stays in each repo's `PLAN.md`.
 
 ## Conventions
 
@@ -54,6 +58,9 @@ No `PLAN.md` here, deliberately — this repo has no ongoing work of its own.
 Open follow-ups belong either to a specific repo's `PLAN.md` or to the
 ledger at the end of
 [records/BUILD-STANDARDIZATION-PLAN.md](records/BUILD-STANDARDIZATION-PLAN.md).
+Cross-repo task order lives in
+[records/CORVUS-ADOPTION-WORKPLAN.md](records/CORVUS-ADOPTION-WORKPLAN.md)
+while that effort is active.
 
 `main` enforces verified signatures with no bypass, and refuses
 force-pushes and branch deletion. An unsigned commit is rejected at push

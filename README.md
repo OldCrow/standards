@@ -19,13 +19,17 @@ undocumented deviation is a defect.
 
 ## Records
 
-[`records/`](records/) holds completed cross-repo efforts — the reasoning
-and the evidence behind decisions that are now standing rules, plus any
-follow-ups those efforts left open.
+[`records/`](records/) holds cross-repo efforts — the reasoning and the
+evidence behind decisions that are now standing rules, plus any
+follow-ups those efforts left open. At most one record is in progress at
+a time, and it says so in its first line.
 
 - [BUILD-STANDARDIZATION-PLAN.md](records/BUILD-STANDARDIZATION-PLAN.md)
   — the 2026-07 build-stack standardization across all six repos
   (complete; carries the open follow-up ledger).
+- [CORVUS-ADOPTION-WORKPLAN.md](records/CORVUS-ADOPTION-WORKPLAN.md)
+  — the order of work and machine needs for adopting corvus in libstats
+  and libhmm (ACTIVE since 2026-09-28).
 
 ## Using these
 
