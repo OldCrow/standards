@@ -57,7 +57,7 @@ Facts that change the plan:
 | P2 | M1 | Re-run native correctness: libstats v2.4.1 ctest, libhmm v4.4.1 ctest with the NEON ULP gates, corvus v1.0.1 tier-asserted NEON | Re-establishes the NEON baseline on macOS 28 |
 | P3 | M1 | Reconcile the three stale libstats branches and the loose NEON patch | libstats `PLAN.md` Next Steps 5. Until done, no stale-branch sweep on the M1 checkout of libstats |
 | P4 | M1 | Update the fleet tables from Tahoe to macOS 28, using P1's measured versions | libstats `AGENTS.md`, corvus `docs/ENVIRONMENT.md`, libhmm `PLAN.md` Local Machine State |
-| P5 | Zen 4 | Pull all repos; fresh builds; native smoke of libstats v2.4.1 and corvus v1.0.1, including the corvus toolchain guard under clang-cl, MSVC and mingw | The guard has run on CI runners only |
+| ~~P5~~ | ~~Zen 4~~ | ~~Pull all repos; fresh builds; native smoke of libstats v2.4.1 and corvus v1.0.1, including the corvus toolchain guard under clang-cl, MSVC and mingw~~ | DONE 2026-09-28: libstats ctest 74/74 (MSVC, AVX-512); corvus ctest 34/34 tier-asserted AVX3_ZEN4 (clang-cl); guard verdicts as designed under all three compilers |
 | P6 | Kaby Lake | None | The travel work was done on this machine |
 
 ## Main spine (libstats)
