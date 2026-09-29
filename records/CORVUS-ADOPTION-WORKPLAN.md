@@ -29,7 +29,7 @@ Facts that change the plan:
 
 - **corvus is off the critical path.** v1.0.0 froze the surface; all
   remaining adoption work is consumer-side. Consumers pin v1.0.1.
-- **The Mac Mini M1 moved from macOS Tahoe 26 to macOS 28 during the
+- **The Mac Mini M1 moved from macOS Tahoe 26 to macOS 27 Golden Gate during the
   travel period** [user, 2026-09-28]. Every M1 validation and timing
   record before that date is a Tahoe record. Toolchain and Apple libm
   versions on the new OS are unmeasured until P1 runs.
@@ -53,10 +53,10 @@ Facts that change the plan:
 
 | # | Machine | Task | Why |
 |---|---|---|---|
-| P1 | M1 | Pull all repos; check the toolchain after the OS upgrade (Command Line Tools, AppleClang version, Homebrew, Highway 1.4.0, Python venvs); wipe build directories | The build environment changed under every checkout |
-| P2 | M1 | Re-run native correctness: libstats v2.4.1 ctest, libhmm v4.4.1 ctest with the NEON ULP gates, corvus v1.0.1 tier-asserted NEON | Re-establishes the NEON baseline on macOS 28 |
-| P3 | M1 | Reconcile the three stale libstats branches and the loose NEON patch | libstats `PLAN.md` Next Steps 5. Until done, no stale-branch sweep on the M1 checkout of libstats |
-| P4 | M1 | Update the fleet tables from Tahoe to macOS 28, using P1's measured versions | libstats `AGENTS.md`, corvus `docs/ENVIRONMENT.md`, libhmm `PLAN.md` Local Machine State |
+| ~~P1~~ | ~~M1~~ | ~~Pull all repos; check the toolchain after the OS upgrade (Command Line Tools, AppleClang version, Homebrew, Highway 1.4.0, Python venvs); wipe build directories~~ | DONE 2026-09-28: macOS 27.0.1; Xcode and CLT 27.0; AppleClang 21.0.0 (clang-2100.3.34.2); CMake 4.4.3; Ninja 1.13.2; Homebrew 7.0.7; Highway 1.4.0; Python 3.14.7 venvs (pylibstats, pylibhmm). Fresh `build-m1-gg/` per repo; pre-upgrade `build*/` dirs still to wipe (Tahoe result logs archived to `~/Archive/`). Stale `SDKROOT` (CLT SDK vs `xcode-select` Xcode) resolved by pulling chezmoi `20ca30d` and applying; today's M1 builds used the CLT 27.0 SDK, same version as Xcode's |
+| ~~P2~~ | ~~M1~~ | ~~Re-run native correctness: libstats v2.4.1 ctest, libhmm v4.4.1 ctest with the NEON ULP gates, corvus v1.0.1 tier-asserted NEON~~ | DONE 2026-09-28, all warning-clean: libstats 74/74 (NEON); libhmm 51/51, ULP gates max 1 ULP, means unchanged from Tahoe; corvus 34/34 under `CORVUS_EXPECT_TARGET=NEON` |
+| ~~P3~~ | ~~M1~~ | ~~Reconcile the three stale libstats branches and the loose NEON patch~~ | DONE 2026-09-28: all three superseded and deleted (SHAs in libstats `PLAN.md` Next Steps 5); patch moved to `~/Archive/`. The M1 sweep block is lifted |
+| ~~P4~~ | ~~M1~~ | ~~Update the fleet tables from Tahoe to macOS 27 Golden Gate, using P1's measured versions~~ | DONE 2026-09-28: libstats `AGENTS.md`, corvus `docs/ENVIRONMENT.md`, libhmm `PLAN.md` Local Machine State |
 | ~~P5~~ | ~~Zen 4~~ | ~~Pull all repos; fresh builds; native smoke of libstats v2.4.1 and corvus v1.0.1, including the corvus toolchain guard under clang-cl, MSVC and mingw~~ | DONE 2026-09-28: libstats ctest 74/74 (MSVC, AVX-512); corvus ctest 34/34 tier-asserted AVX3_ZEN4 (clang-cl); guard verdicts as designed under all three compilers |
 | P6 | Kaby Lake | None | The travel work was done on this machine |
 
@@ -64,7 +64,7 @@ Facts that change the plan:
 
 | # | Task | Issues / milestones | Machines |
 |---|---|---|---|
-| 1 | Pre-swap baseline: regenerate the characterization sweep at v2.4.1 | Zen 4 DONE 2026-09-28 (AVX-512, 34 → 32); Kaby Lake DONE 2026-09-28 (AVX2, 34 → 32, same rows). The plan's 63 → 61 was the older 6063-row grid. **M1 (NEON) owed**, after P1–P2 | ~~Zen 4~~, ~~Kaby Lake~~, M1 |
+| ~~1~~ | ~~Pre-swap baseline: regenerate the characterization sweep at v2.4.1~~ | DONE 2026-09-28 on all three: Zen 4 (AVX-512, 34 → 32); Kaby Lake (AVX2, 34 → 32, same rows); M1 (NEON, 32 → 32, geometric logpdf max_rel 0.865 → 2.9e-11). The M1 leg shows one von Mises `cdf` row moved with macOS 27, not with code: v2.4.0's commit rebuilt on macOS 27 differs from v2.4.1 only in the two #125 rows. The plan's 63 → 61 was the older 6063-row grid | ~~Zen 4~~, ~~Kaby Lake~~, ~~M1~~ |
 | 2 | v2.5.0 core swap on a dev branch, corvus pinned at v1.0.1 | libstats milestone #6; starts from the call-site inventory and the no-broadcast design point | Any one |
 | 3 | Post-swap sweep, validation matrix, same-machine x86 erf timing; correct the unmeasured `~5×` erf comment in `dispatch_thresholds.h` from the result | libstats `PLAN.md` Next Steps 3(a)–(b); capped tiers on Kaby Lake | All three |
 | 4 | libstats v2.5.0 release | Milestone #6 close | Any, with the signing key |
@@ -72,7 +72,7 @@ Facts that change the plan:
 | 6 | libstats post-adoption patch | libstats milestone #8; #144 needs the first post-swap Zen 4 session | All three |
 
 Task 1 precedes task 2 for a reason beyond the owed confirmation: on the
-M1 it separates what macOS 28 changed from what corvus changes. Without
+M1 it separates what macOS 27 changed from what corvus changes. Without
 it, the post-swap NEON differences confound the two.
 
 ## Parallel track (libhmm)
@@ -89,7 +89,7 @@ it, the post-swap NEON differences confound the two.
 |---|---|---|---|
 | A | Fix the libstats coverage measurement, then port to libhmm | libstats #152, libhmm #108 | CI only |
 | B | Uniform speedup gate flake | libstats #129 | Zen 4 |
-| C | M1 quiet-bench retry on macOS 28 | corvus `docs/PERFORMANCE.md` M1 rows are INDICATIVE | M1 |
+| C | M1 quiet-bench retry on macOS 27 | corvus `docs/PERFORMANCE.md` M1 rows are INDICATIVE | M1 |
 | D | corvus v1.1.0 kernel work | corvus #31, #22, #21, #18; #37 capped rows only if task 3 needs them | Kaby Lake first, then all |
 | K | Linux aarch64 validation gap: the aarch64 wheel will ship corvus NEON compiled by GCC, a compiler × ISA pair no fleet machine validates | libstats `PLAN.md` Cross-Repo Dependencies; decide the remedy before task 5 ships wheels | CI (aarch64 runner) |
 | E | `load_hmm` wrapper decision | pylibhmm #31 | Any |
@@ -124,9 +124,9 @@ spine and the libhmm track finish, and none has an order yet.
 
 ## Suggested session order
 
-1. M1: P1 to P4 in one session.
-2. Zen 4: P5.
-3. Task 1 on each machine, then task 2.
+1. ~~M1: P1 to P4 in one session.~~ DONE 2026-09-28.
+2. ~~Zen 4: P5.~~ DONE 2026-09-28.
+3. ~~Task 1 on each machine~~ (DONE 2026-09-28), then task 2.
 4. Task 7 alongside task 2, on whichever machine is free.
 
 Side tasks A, E, F, H, J and K fit any gap.
