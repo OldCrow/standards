@@ -65,7 +65,7 @@ Facts that change the plan:
 | # | Task | Issues / milestones | Machines |
 |---|---|---|---|
 | ~~1~~ | ~~Pre-swap baseline: regenerate the characterization sweep at v2.4.1~~ | DONE 2026-09-28 on all three: Zen 4 (AVX-512, 34 → 32); Kaby Lake (AVX2, 34 → 32, same rows); M1 (NEON, 32 → 32, geometric logpdf max_rel 0.865 → 2.9e-11). The M1 leg shows one von Mises `cdf` row moved with macOS 27, not with code: v2.4.0's commit rebuilt on macOS 27 differs from v2.4.1 only in the two #125 rows. The plan's 63 → 61 was the older 6063-row grid | ~~Zen 4~~, ~~Kaby Lake~~, ~~M1~~ |
-| 2 | v2.5.0 core swap on a dev branch, corvus pinned at v1.0.1 | libstats milestone #6; starts from the call-site inventory and the no-broadcast design point | Any one |
+| 2 | v2.5.0 core swap on a dev branch, corvus pinned at v1.0.1 | libstats milestone #6; starts from the call-site inventory. **READY 2026-09-29**: constant-argument calls decided — block-filled constant spans inside libstats' `vector_*` adapters, no corvus change (libstats `PLAN.md` Decided) | Any one |
 | 3 | Post-swap sweep, validation matrix, same-machine x86 erf timing; correct the unmeasured `~5×` erf comment in `dispatch_thresholds.h` from the result | libstats `PLAN.md` Next Steps 3(a)–(b); capped tiers on Kaby Lake | All three |
 | 4 | libstats v2.5.0 release | Milestone #6 close | Any, with the signing key |
 | 5 | pylibstats v0.8.0: pin bump, LICENSE and NOTICE, Windows wheel job | pylibstats #20; needs side task J done first | Any, plus CI |
@@ -116,9 +116,9 @@ spine and the libhmm track finish, and none has an order yet.
 
 ## Open decisions [user]
 
-- **No-broadcast design point.** corvus takes same-length spans only.
-  How libstats calls it where one argument is a scalar parameter blocks
-  task 2.
+- ~~**No-broadcast design point.**~~ DECIDED 2026-09-29: libstats fills
+  the constant span per block inside its `vector_*` adapters; corvus
+  unchanged. Task 2 is unblocked.
 - **Windows wheel.** Raise the job timeout and accept the AVX2 cap under
   MSVC, or move the wheel to clang-cl. Blocks task 5 only.
 
