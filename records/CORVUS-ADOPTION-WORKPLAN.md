@@ -69,7 +69,7 @@ Facts that change the plan:
 | 3 | Post-swap sweep, validation matrix, same-machine x86 erf timing; correct the unmeasured `~5×` erf comment in `dispatch_thresholds.h` from the result | libstats `PLAN.md` Next Steps 3(a)–(b); capped tiers on Kaby Lake | All three |
 | 4 | libstats v2.5.0 release | Milestone #6 close | Any, with the signing key |
 | 5 | pylibstats v0.8.0: pin bump, LICENSE and NOTICE, Windows wheel job | pylibstats #20; needs side task J done first | Any, plus CI |
-| 6 | libstats post-adoption patch | libstats milestone #8; #144 needs the first post-swap Zen 4 session | All three |
+| 6 | libstats post-adoption patch | libstats milestone #8, bucketed 2026-09-29: #103, #104, #111, #144 wait for task 3's sweep and timing (#144 needs the first post-swap Zen 4 session; moot if #111 lands NEVER); #114 one pass after the swap. #146 is a task 3 prerequisite (below) | All three |
 
 Task 1 precedes task 2 for a reason beyond the owed confirmation: on the
 M1 it separates what macOS 27 changed from what corvus changes. Without
@@ -89,13 +89,14 @@ it, the post-swap NEON differences confound the two.
 |---|---|---|---|
 | A | Fix the libstats coverage measurement, then port to libhmm | libstats #152, libhmm #108 | CI only |
 | B | Uniform speedup gate flake | libstats #129 | Zen 4 |
+| L | Promote the sustained-crossover method into `threshold_validator` — **before task 3**, so the post-swap threshold re-measure uses the trusted tool; acceptance = reproducing the encoded kAvx2/kNeon rows from the two v2.4.0 bundles | libstats #146 | Any |
 | C | M1 quiet-bench retry on macOS 27 | corvus `docs/PERFORMANCE.md` M1 rows are INDICATIVE | M1 |
 | D | corvus v1.1.0 kernel work | corvus #31, #22, #21, #18; #37 capped rows only if task 3 needs them | Kaby Lake first, then all |
 | K | Linux aarch64 validation gap: the aarch64 wheel will ship corvus NEON compiled by GCC, a compiler × ISA pair no fleet machine validates | libstats `PLAN.md` Cross-Repo Dependencies; decide the remedy before task 5 ships wheels | CI (aarch64 runner) |
 | E | `load_hmm` wrapper decision | pylibhmm #31 | Any |
 | F | `errorf_inv` exposure investigation | libhmm #103 | Any |
 | G | Radar jamming calculator | ewcalc #88; needs the physical book pins | Windows and Linux UI |
-| H | Plan hygiene | libstats GitHub reconcile (last done 2026-09-05) and milestone #8 bucketing pass | Any |
+| H | Plan hygiene | libstats GitHub reconcile (last done 2026-09-05); ~~milestone #8 bucketing pass~~ DONE 2026-09-29 | Any |
 | ~~I~~ | ~~Merge the open dependabot PRs~~ | DONE 2026-09-28: all eight merged; `main` CI green in libstats, libhmm, corvus and ewcalc | — |
 | J | scikit-build-core 1.1.0 breaks free-threaded Python discovery in pylibstats and pylibhmm | Capped `<1.1` on 2026-09-28; CI confirmed green on the capped commits. Open, in order: (1) reproduce on CI, not locally — a throwaway branch with a `workflow_dispatch` job on `ubuntu-latest` / 3.14t / 1.1.0 that prints the generated `CMakeInit.txt` and `Python_FIND_ABI`, changing one variable at a time (drop `wheel.py-api`; newer CMake); (2) decide: upstream defect, or a change to this project's `find_package(Python ...)`; (3) file upstream at scikit-build/scikit-build-core if a defect; (4) lift the cap in both repos together. Detail in both repos' `PLAN.md` | CI only |
 
@@ -129,4 +130,6 @@ spine and the libhmm track finish, and none has an order yet.
 3. ~~Task 1 on each machine~~ (DONE 2026-09-28), then task 2.
 4. Task 7 alongside task 2, on whichever machine is free.
 
-Side tasks A, E, F, H, J and K fit any gap.
+Side tasks A, E, F, J and K fit any gap; L fits the gaps in task 2 and
+must land before task 3. H's milestone #8 bucketing half is done
+(2026-09-29); its GitHub reconcile half remains.
