@@ -27,8 +27,13 @@ here.
 
 Facts that change the plan:
 
-- **corvus is off the critical path.** v1.0.0 froze the surface; all
-  remaining adoption work is consumer-side. Consumers pin v1.0.1.
+- ~~**corvus is off the critical path.**~~ **On it again (2026-09-29).**
+  v1.0.0 froze the surface and the libstats swap is correctness-complete
+  on `dev/v2.5.0-corvus`, but its M1 throughput (special-function CDF
+  12–24×, quantile 8–66× slower; libstats "perf: v2.5.0 throughput"
+  issue, milestone #6) gates the release. Decision [user]: corvus v1.1.0
+  throughput first (corvus #42, #43, #31; #37 for x86), then task 3 once
+  against the final kernel costs. Consumers still pin v1.0.1.
 - **The Mac Mini M1 moved from macOS Tahoe 26 to macOS 27 Golden Gate during the
   travel period** [user, 2026-09-28]. Every M1 validation and timing
   record before that date is a Tahoe record. Toolchain and Apple libm
@@ -65,8 +70,10 @@ Facts that change the plan:
 | # | Task | Issues / milestones | Machines |
 |---|---|---|---|
 | ~~1~~ | ~~Pre-swap baseline: regenerate the characterization sweep at v2.4.1~~ | DONE 2026-09-28 on all three: Zen 4 (AVX-512, 34 → 32); Kaby Lake (AVX2, 34 → 32, same rows); M1 (NEON, 32 → 32, geometric logpdf max_rel 0.865 → 2.9e-11). The M1 leg shows one von Mises `cdf` row moved with macOS 27, not with code: v2.4.0's commit rebuilt on macOS 27 differs from v2.4.1 only in the two #125 rows. The plan's 63 → 61 was the older 6063-row grid | ~~Zen 4~~, ~~Kaby Lake~~, ~~M1~~ |
-| 2 | v2.5.0 core swap on a dev branch, corvus pinned at v1.0.1 | libstats milestone #6. **IN PROGRESS**: `dev/v2.5.0-corvus`, five increments on the M1 (2026-09-29) — engine + adapters, inverses + hot loops, Bessel, the elementary family (−8.3k lines of tier kernels), PMF/notices/CI/docs; ctest 74/74 and a NEON sweep at each step (libstats `PLAN.md` Next Steps (c) has the numbers and what remains). Owed before the PR: Kaby Lake and Zen 4 native legs of the branch, CI green on the branch | M1 ~~done~~; Kaby Lake, Zen 4 |
-| 3 | Post-swap sweep, validation matrix, same-machine x86 erf timing; correct the unmeasured `~5×` erf comment in `dispatch_thresholds.h` from the result | libstats `PLAN.md` Next Steps 3(a)–(b); capped tiers on Kaby Lake | All three |
+| 2 | v2.5.0 core swap on a dev branch, corvus pinned at v1.0.1 | libstats milestone #6. **PARKED, correctness-complete** (2026-09-29): `dev/v2.5.0-corvus`, five increments on the M1 — engine + adapters, inverses + hot loops, Bessel, the elementary family, notices/CI/docs; ctest 74/74 and a NEON sweep at each step; accuracy delivered (libstats `PLAN.md` Next Steps (c)). Resumes after 2b. Still owed then: Kaby Lake and Zen 4 legs, CI green | M1 ~~done~~; Kaby Lake, Zen 4 |
+| 2a | Fleet throughput comparatives of the branch: run `tools/bench/` (v2.4.1 vs branch, elementary family, corvus per-call scaling) on the x86 machines — decides the elementary-family question per ISA and gives corvus its fleet targets | libstats perf issue (milestone #6) | Kaby Lake, Zen 4 |
+| 2b | corvus v1.1.0 throughput: incomplete gamma/beta family and inverses with a scalar entry point (#42), NEON elementary import from libstats' clean-room kernels (#43), lgamma (#31), x86 erf (#37); release + libstats pin bump | corvus milestone v1.1.0 | All three (quiet for the timing) |
+| 3 | Post-swap sweep, validation matrix, same-machine x86 erf timing (after 2b — runs once, against the final kernel costs); correct the unmeasured `~5×` erf comment in `dispatch_thresholds.h` from the result | libstats `PLAN.md` Next Steps 3(a)–(b); capped tiers on Kaby Lake | All three |
 | 4 | libstats v2.5.0 release | Milestone #6 close | Any, with the signing key |
 | 5 | pylibstats v0.8.0: pin bump, LICENSE and NOTICE, Windows wheel job | pylibstats #20; needs side task J done first | Any, plus CI |
 | 6 | libstats post-adoption patch | libstats milestone #8, bucketed 2026-09-29: #103, #104, #111, #144 wait for task 3's sweep and timing (#144 needs the first post-swap Zen 4 session; moot if #111 lands NEVER); #114 one pass after the swap. #146 is a task 3 prerequisite (below) | All three |
@@ -91,7 +98,7 @@ it, the post-swap NEON differences confound the two.
 | B | Uniform speedup gate flake | libstats #129 | Zen 4 |
 | L | Promote the sustained-crossover method into `threshold_validator` — **before task 3**, so the post-swap threshold re-measure uses the trusted tool; acceptance = reproducing the encoded kAvx2/kNeon rows from the two v2.4.0 bundles | libstats #146 | Any |
 | C | M1 quiet-bench retry on macOS 27 | corvus `docs/PERFORMANCE.md` M1 rows are INDICATIVE | M1 |
-| D | corvus v1.1.0 kernel work | corvus #31, #22, #21, #18; #37 capped rows only if task 3 needs them | Kaby Lake first, then all |
+| D | corvus v1.1.0 kernel work beyond 2b | corvus #22, #21, #18 | Kaby Lake first, then all |
 | K | Linux aarch64 validation gap: the aarch64 wheel will ship corvus NEON compiled by GCC, a compiler × ISA pair no fleet machine validates | libstats `PLAN.md` Cross-Repo Dependencies; decide the remedy before task 5 ships wheels | CI (aarch64 runner) |
 | E | `load_hmm` wrapper decision | pylibhmm #31 | Any |
 | F | `errorf_inv` exposure investigation | libhmm #103 | Any |
@@ -127,8 +134,11 @@ spine and the libhmm track finish, and none has an order yet.
 
 1. ~~M1: P1 to P4 in one session.~~ DONE 2026-09-28.
 2. ~~Zen 4: P5.~~ DONE 2026-09-28.
-3. ~~Task 1 on each machine~~ (DONE 2026-09-28), then task 2.
-4. Task 7 alongside task 2, on whichever machine is free.
+3. ~~Task 1 on each machine~~ (DONE 2026-09-28); task 2 M1 leg DONE
+   2026-09-29 and parked.
+4. 2a on the x86 machines, then 2b (corvus v1.1.0), then task 2 resumes
+   and task 3 runs once.
+5. Task 7 alongside 2b, on whichever machine is free.
 
 Side tasks A, E, F, J and K fit any gap; L fits the gaps in task 2 and
 must land before task 3. H's milestone #8 bucketing half is done
