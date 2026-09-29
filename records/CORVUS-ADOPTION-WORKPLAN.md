@@ -64,7 +64,7 @@ Facts that change the plan:
 
 | # | Task | Issues / milestones | Machines |
 |---|---|---|---|
-| 1 | Pre-swap baseline: regenerate the characterization sweep at v2.4.1 | Owed confirmation in libstats `PLAN.md` In Progress (x86 contract violations 63 → 61; NEON geometric logpdf) | All three |
+| 1 | Pre-swap baseline: regenerate the characterization sweep at v2.4.1 | Zen 4 DONE 2026-09-28 (AVX-512, 34 → 32); Kaby Lake DONE 2026-09-28 (AVX2, 34 → 32, same rows). The plan's 63 → 61 was the older 6063-row grid. **M1 (NEON) owed**, after P1–P2 | ~~Zen 4~~, ~~Kaby Lake~~, M1 |
 | 2 | v2.5.0 core swap on a dev branch, corvus pinned at v1.0.1 | libstats milestone #6; starts from the call-site inventory and the no-broadcast design point | Any one |
 | 3 | Post-swap sweep, validation matrix, same-machine x86 erf timing; correct the unmeasured `~5×` erf comment in `dispatch_thresholds.h` from the result | libstats `PLAN.md` Next Steps 3(a)–(b); capped tiers on Kaby Lake | All three |
 | 4 | libstats v2.5.0 release | Milestone #6 close | Any, with the signing key |
