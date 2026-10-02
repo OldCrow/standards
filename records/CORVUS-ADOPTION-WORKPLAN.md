@@ -38,6 +38,14 @@ Facts that change the plan:
   travel period** [user, 2026-09-28]. Every M1 validation and timing
   record before that date is a Tahoe record. Toolchain and Apple libm
   versions on the new OS are unmeasured until P1 runs.
+- **libstats branch state 2026-10-02** [Zen 4 session]: `main` at
+  `d8d3388` (PR #169, side task B). `dev/v2.4.2` CREATED from it, empty —
+  the v2.4.2 correctness patch (libstats #157–#167, `main`-only fixes
+  filed 2026-09-29/30, independent of 2b) lands there [user: branch
+  after the merge so it starts from `main`]. `dev/v2.5.0-corvus` REBASED
+  onto that `main` (`22c2250` → `0de7ebb`, 17 commits, no conflicts,
+  force-pushed): a checkout of it on any other machine needs `git fetch`
+  and `git reset --hard origin/dev/v2.5.0-corvus` before further work.
 - **Travel-period decisions are recorded, not pending:** libstats v2.5.0
   scope (full swap, milestone #6), the wheel cost-out (pylibstats #20),
   and the libhmm spike's paper half with pre-registered go/no-go criteria
@@ -95,7 +103,7 @@ it, the post-swap NEON differences confound the two.
 | # | Task | Issues | Machines |
 |---|---|---|---|
 | A | Fix the libstats coverage measurement, then port to libhmm | libstats #152, libhmm #108 | CI only |
-| B | Uniform speedup gate flake | libstats #129 | Zen 4 |
+| ~~B~~ | ~~Uniform speedup gate flake~~ | libstats #129 — DONE 2026-10-02 on Zen 4, PR #169 merged to `main` (`d8d3388`), with #168: every speedup gate in the timing-label tests timed its first call, and two paths timed in sequence could straddle the Zen 4 frequency step; all 17 gates now measure steady state with the paths interleaved. Timing suite 22/22 ×10 on Zen 4; one `ctest -j1 -L timing` owed on Kaby Lake and the M1 (the label is outside CI) | ~~Zen 4~~; Kaby Lake, M1 (confirmation) |
 | L | Promote the sustained-crossover method into `threshold_validator` — **before task 3**, so the post-swap threshold re-measure uses the trusted tool; acceptance = reproducing the encoded kAvx2/kNeon rows from the two v2.4.0 bundles | libstats #146 | Any |
 | C | M1 quiet-bench retry on macOS 27 | corvus `docs/PERFORMANCE.md` M1 rows are INDICATIVE | M1 |
 | D | corvus v1.1.0 kernel work beyond 2b | corvus #22, #21, #18 | Kaby Lake first, then all |
