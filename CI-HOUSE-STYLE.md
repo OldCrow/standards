@@ -22,7 +22,9 @@ silicon it draws. Rules 3 and 4 both follow from the second.
   same information.
 - macOS and Windows jobs must justify themselves by coverage they alone
   give: native arm64/NEON silicon, MSVC-only diagnostics, the
-  multi-config generator path. Not tier or version breadth.
+  multi-config generator path, the clang-cl driver path
+  ([WINDOWS-TOOLCHAIN.md](WINDOWS-TOOLCHAIN.md) §5). Not tier or version
+  breadth.
 - Docs-only pushes skip CI:
   `paths-ignore: ['**.md', 'docs/**', 'LICENSE']` on `push` and
   `pull_request` in real CI workflows (never on release/tag/pages ones).

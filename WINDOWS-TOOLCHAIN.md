@@ -1,6 +1,6 @@
 # Windows Toolchain — OldCrow Projects
 
-Canonical Windows/MSVC build environment for libhmm, pylibhmm, libstats,
+Canonical Windows build environment (MSVC and clang-cl) for libhmm, pylibhmm, libstats,
 pylibstats, ewcalc, and corvus. Consolidated 2026-09-07 from the four
 copies that had grown independently in libstats, libhmm, pylibhmm, and
 pylibstats. Each repo's AGENTS.md states only its *deviations* and the
@@ -24,6 +24,11 @@ directories. Prefer `vswhere` over hard-coding any of them.
   - Full editions: `C:\Program Files\Microsoft Visual Studio\{version}\{edition}\`
   - `{version}` is `2022` for VS 17.x and `18` for VS 2026; `{edition}` is
     Community, Professional, or Enterprise.
+- **clang-cl**, for the repos that build with it (§5): the Visual Studio
+  component "C++ Clang tools for Windows", which installs to
+  `{VS}\VC\Tools\Llvm\x64\bin\`, or a standalone LLVM
+  (`winget install LLVM.LLVM`). Either way it still needs the MSVC
+  installation above for the linker, the CRT, and the Windows SDK.
 - **CMake ≥ 3.25** — <https://cmake.org/download/>, `winget install Kitware.CMake`,
   or `choco install cmake`. Generator support for a new VS major version needs
   a correspondingly new CMake: VS 2026 needs CMake ≥ 4.1.
@@ -77,8 +82,10 @@ Whether you need this depends on the generator, so check before assuming:
 
 - **Visual Studio generator** (the CMake default on Windows): no activation
   needed. The generator locates its own toolchain.
-- **Ninja, or invoking `cl.exe` directly**: activate MSVC once per PowerShell
-  session. It does not persist.
+- **Ninja, or invoking `cl.exe` or `clang-cl` directly**: activate MSVC once
+  per PowerShell session. It does not persist. clang-cl takes `link.exe`,
+  `rc.exe`, `INCLUDE` and `LIB` from this environment; with the
+  VS-bundled copy, also put `$vsPath\VC\Tools\Llvm\x64\bin` on `PATH`.
 
 ```powershell
 # Locate the newest installed Visual Studio, any version or edition:
@@ -113,7 +120,8 @@ troubleshoot generator selection itself.
 
 This is the Windows case of the generator-agnostic rule in
 [CMAKE-HOUSE-STYLE.md](CMAKE-HOUSE-STYLE.md) §1, and of its ban on a
-`generator` field in presets (§ presets).
+`generator` field in presets (§9). The one exception is the
+`windows-clang-cl` preset, which must pin Ninja (§5).
 
 ## 4. Multi-config hazard: stale Debug binaries
 
@@ -136,3 +144,75 @@ dumpbin /imports <build>\tests\<some_dynamic_test>.exe | Select-String vcruntime
 ```
 
 Each repo's AGENTS.md names the specific binaries worth checking.
+
+## 5. clang-cl
+
+clang-cl is Clang behind an MSVC-style command line. It links against the
+MSVC CRT and produces MSVC-ABI objects, so its libraries mix freely with
+`cl.exe` ones. corvus and libstats support it; it is the full-speed
+Windows build for anything that compiles corvus:
+
+- **Highway blocklists every AVX-512 target under `cl.exe`**, so a
+  corvus compiled by MSVC dispatches AVX2 at best, on any CPU.
+- **`cl.exe` compiles corvus's kernels 3–19× slower** than clang-cl does
+  at the same tier (Zen 4, 2026-09-30; libstats
+  `docs/bench-evidence/2026-09-30-zen4-clangcl-avx2/`). Results are
+  bit-identical.
+
+So Windows performance numbers come from a clang-cl build, and a
+`cl.exe` build of a corvus consumer is a correctness and diagnostics
+build. libstats warns at configure time when `cl.exe` is compiling a
+fetched corvus.
+
+**Selecting it.** After §2's activation:
+
+```powershell
+cmake --preset windows-clang-cl        # Ninja, Release, clang-cl for C and C++
+```
+
+Beyond the build type, the preset pins two things no other preset does:
+
+- *The generator.* The Visual Studio generator ignores
+  `CMAKE_CXX_COMPILER` and `CMAKE_BUILD_TYPE`: without Ninja the preset
+  silently yields an MSVC Debug build under a name promising clang-cl
+  Release. This is the exception to the no-`generator` rule.
+- *C as well as C++.* Highway enables both languages; leaving C to
+  default hands MSVC-style flags to a GNU-driver `clang`.
+
+With the Visual Studio generator, select the toolset instead:
+`cmake -B build -A x64 -T ClangCL`.
+
+**Three ways to combine the compilers**, all verified on libstats:
+everything with clang-cl (the preset; dependencies fetched); `cl.exe`
+for the consumer with a clang-cl corvus and Highway installed to a prefix
+and found through `CMAKE_PREFIX_PATH`; everything with `cl.exe` (slow
+corvus). One FetchContent tree cannot mix compilers, which is why the
+second needs the installed prefix.
+
+**Porting a repo to clang-cl** — what broke in libstats, in order of how
+much it explained:
+
+- `-Wall` means `cl.exe`'s `/Wall`, i.e. `-Weverything`. Use `/W4`
+  (clang-cl's `-Wall -Wextra`). Branch on
+  `CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC"`, not on
+  `CMAKE_CXX_COMPILER_ID` alone, which is plain `Clang`.
+- Both `_MSC_VER` and `__clang__` are defined. An `#if` that tests
+  `__clang__` or `__GNUC__` first takes the GNU branch
+  (`<cpuid.h>`, `__cpuid_count`) while the includes took the MSVC one
+  (`<intrin.h>`, `__cpuidex`). Test `_MSC_VER` first.
+- The driver rejects GNU options that are not warnings: `-pedantic` is
+  `-Wpedantic`; others pass through as `/clang:<option>`.
+- `/arch:SSE2` does not exist on x64. `cl.exe` ignores it; clang-cl
+  warns.
+- A fetched GoogleTest builds its own sources with `-WX` under an
+  MSVC-style driver; 1.17.0 trips Clang 21's `-Wcharacter-conversion`.
+  Suppress it on GoogleTest's targets, and fetch GoogleTest `SYSTEM`.
+- Expect diagnostics the `cl.exe` build never showed: undiscarded
+  `[[nodiscard]]` results, `inline` on a function defined in another
+  file, and under a strict warning set sign conversions in Win32 calls.
+
+**CI.** A clang-cl leg asserts its own compiler — `CMakeCXXCompiler.cmake`
+must say `Clang` with the `MSVC` frontend — because a leg that falls back
+to `cl.exe` still builds and tests green. Hosted runners do not all have
+AVX-512, so a leg cannot assert a SIMD tier; tier evidence comes from
+native runs.

@@ -135,8 +135,12 @@ spine and the libhmm track finish, and none has an order yet.
 - ~~**No-broadcast design point.**~~ DECIDED 2026-09-29: libstats fills
   the constant span per block inside its `vector_*` adapters; corvus
   unchanged. Task 2 is unblocked.
-- **Windows wheel.** Raise the job timeout and accept the AVX2 cap under
-  MSVC, or move the wheel to clang-cl. Blocks task 5 only.
+- ~~**Windows wheel.** Raise the job timeout and accept the AVX2 cap under
+  MSVC, or move the wheel to clang-cl.~~ DECIDED 2026-10-03: clang-cl is
+  a supported Windows workflow (libstats `dev/v2.5.0-corvus`: presets,
+  `Strict`, `-T ClangCL`, a CI leg; `WINDOWS-TOOLCHAIN.md` §5). The
+  wheel moves to clang-cl with the v2.5.0 pin — OldCrow/pylibstats#26.
+  Still part of task 5.
 
 ## Suggested session order
 

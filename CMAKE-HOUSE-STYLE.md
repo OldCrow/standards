@@ -173,7 +173,9 @@ files, pkg-config file. Never tests, examples, tools, or benchmarks.
 Every repo carries `CMakePresets.json` (schema version ≥ 6) with the shared
 vocabulary; presets set `binaryDir`, `CMAKE_BUILD_TYPE`, and cache options
 — **never a `generator` field** (user default rules; CI passes `-G Ninja`
-explicitly).
+explicitly). One exception: a `windows-clang-cl` preset pins Ninja, because
+the Visual Studio generator ignores the compiler it names
+([WINDOWS-TOOLCHAIN.md](WINDOWS-TOOLCHAIN.md) §5).
 
 - Common: `release` → `build/`, `debug` → `build-debug/`,
   `rel-with-debug` → `build-relwithdebinfo/` (libhmm's existing dir naming
