@@ -46,6 +46,16 @@ Facts that change the plan:
   onto that `main` (`22c2250` → `0de7ebb`, 17 commits, no conflicts,
   force-pushed): a checkout of it on any other machine needs `git fetch`
   and `git reset --hard origin/dev/v2.5.0-corvus` before further work.
+- **libstats branch state 2026-10-03** [Zen 4 session]:
+  `dev/v2.5.0-corvus` at `a036ffb` — the libstats-side levers (task 2c)
+  and clang-cl as a supported Windows workflow have landed there; CI
+  (dispatched) 12/12 on `003c3ad`. `dev/v2.4.2` is active in a separate
+  session and worktree, at `6245e4e` when last read: it carries the
+  clang-cl port (`420eaf1` cherry-picked with `-x`) and its own backport
+  of the discrete-quantile search (libstats #170, #171, filed from the
+  2c work). After v2.4.2 ships, `dev/v2.5.0-corvus` rebases onto `main`;
+  ten files will need a decision each (guide in libstats `PLAN.md`,
+  "Rebase onto `main` after v2.4.2 ships").
 - **Travel-period decisions are recorded, not pending:** libstats v2.5.0
   scope (full swap, milestone #6), the wheel cost-out (pylibstats #20),
   and the libhmm spike's paper half with pre-registered go/no-go criteria
@@ -81,9 +91,10 @@ Facts that change the plan:
 | 2 | v2.5.0 core swap on a dev branch, corvus pinned at v1.0.1 | libstats milestone #6. **PARKED, correctness-complete** (2026-09-29): `dev/v2.5.0-corvus`, five increments on the M1 — engine + adapters, inverses + hot loops, Bessel, the elementary family, notices/CI/docs; ctest 74/74 and a NEON sweep at each step; accuracy delivered (libstats `PLAN.md` Next Steps (c)). Resumes after 2b; CI green on the branch at `01ade5c` (2026-09-29). Still owed then: ~~Kaby Lake and Zen 4 legs~~ (both done; re-run at the pin bump). Kaby Lake leg DONE 2026-09-30: `6b78cd5` native AVX2, correctness 74/74, sweep 32 → 35 (the M1's rows), AVX2 block regenerated; two timing-label tests regress vs v2.4.1 on that machine (libstats `PLAN.md` Next Steps 6(c)). Zen 4 leg DONE 2026-09-30 at `ead51e0`: MSVC `/arch:AVX512`, ctest 74/74 against both a clang-cl corvus (`AVX3_ZEN4`) and an MSVC corvus (`AVX2` cap), AVX-512 sweep 32 → 35 (the same rows), the two corvus builds bit-identical over all 9798 rows, AVX-512 block regenerated; four exp/log SIMD-speedup timing gates fail on the branch there | M1 ~~done~~; ~~Kaby Lake~~ done; ~~Zen 4~~ done |
 | ~~2a~~ | ~~Fleet throughput comparatives of the branch: run `tools/bench/` (v2.4.1 vs branch, elementary family, corvus per-call scaling) on the x86 machines — decides the elementary-family question per ISA and gives corvus its fleet targets~~ | libstats perf issue (milestone #6). DONE: Zen 4 2026-09-30 (`docs/bench-evidence/2026-09-30-zen4-quiet-warm/`), Kaby Lake 2026-09-30 (`docs/bench-evidence/2026-09-30-kaby-quiet/`, quiet, one pass). Same verdict on both ISAs: keep corvus erf on x86, exp/log are the loss (3–6×); scalar CDF 7–20× and quantiles 7–75× are the per-call price. corvus AVX2 targets per element: erf 6.5, exp 8.0, lgamma 58, gamma_p 152, beta_p 1,024, gamma_p_inv 1,886 ns | ~~Kaby Lake~~, ~~Zen 4~~ |
 | 2b | corvus v1.1.0 throughput: incomplete gamma/beta family and inverses with a scalar entry point (#42), NEON elementary import from libstats' clean-room kernels (#43), lgamma (#31), x86 erf (#37); release + libstats pin bump | corvus milestone v1.1.0. **IN PROGRESS** (2026-09-30, Kaby Lake): #42 lever 2 landed on corvus `main` at `a78eddd` — the driver pads the masked tail with a live element (single calls now cost one vector: gamma_p 2.9×, lgamma 2.6× faster, bit-identical) plus eight scalar entry points; ctest 34/34 AVX2. Owed: #42 lever 1 (per-element kernel cost — the ≤ 250 ns single-call target lives there), #43, #31, #37; NEON (M1) ctest of `a78eddd` before the release (AVX-512 DONE 2026-09-30 on Zen 4: 34/34 tier-asserted `AVX3_ZEN4`); the libstats pin bump must replace the deducing `corvus_scalar` wrapper with the scalar entry points (overload sets); corvus `docs/PERFORMANCE.md` §4/§8.2 re-run at v1.1.0. Detail: corvus `PLAN.md` Status, corvus #42 | All three (quiet for the timing); M1 owes the `a78eddd` ctest |
+| 2c | libstats-side levers from the 2a analysis, on `dev/v2.5.0-corvus`, independent of corvus: (1) revert the elementary-family swap except erf on x86; (2) discrete-quantile search from a normal guess, Student-t quantile with one inverse call off the tail; (3) Windows on clang-cl | libstats #156. **DONE on Zen 4 2026-10-03** (`e62a616`, `45000c6`, `c51e2ed`; clang-cl `420eaf1`, `402f624`, `003c3ad`; AVX-512 block regenerated at `a036ffb`): ctest 74/74, timing 22/22, sweep 35 contract violations, unchanged. INDICATIVE Zen 4 numbers: exp/log/cos/sin back at v2.4.1 cost and erf 3.4× faster than v2.4.1; batch pdf/logpdf for gamma, beta, Student-t back at parity; quantile binomial 145 → 8.3 µs, poisson 9.2 → 2.5 µs, Student-t 43.7 → 27.7 µs. libstats builds with clang-cl (presets `windows-clang-cl`, `-strict`; `-T ClangCL`; a CI leg, 5 min vs MSVC 18) and matches the cl.exe + clang-cl-corvus speed. What stays corvus-owned (2b, #42): scalar CDF 7–17×, batch CDF beta/binomial/Student-t 3–8×, quantile gamma family 10–17×, Student-t 39×. Consequences: corvus #43 is now a deduplication, not a libstats throughput dependency; libstats #107/#108/#110 are open again in substance. Owed: Kaby Lake and M1 legs (ctest, sweep with block regeneration, bench — the M1's NEON kernels are restored untested), a quiet warmed record pass on Zen 4. Detail: libstats `PLAN.md` Status | Zen 4 done; Kaby Lake and M1 owe their legs; all three quiet for the record |
 | 3 | Post-swap sweep, validation matrix, same-machine x86 erf timing (after 2b — runs once, against the final kernel costs); correct the unmeasured `~5×` erf comment in `dispatch_thresholds.h` from the result | libstats `PLAN.md` Next Steps 3(a)–(b); capped tiers on Kaby Lake | All three |
 | 4 | libstats v2.5.0 release | Milestone #6 close | Any, with the signing key |
-| 5 | pylibstats v0.8.0: pin bump, LICENSE and NOTICE, Windows wheel job | pylibstats #20; needs side task J done first | Any, plus CI |
+| 5 | pylibstats v0.8.0: pin bump, LICENSE and NOTICE, Windows wheel job (moves to clang-cl with the pin — pylibstats #26) | pylibstats #20, #26; needs side task J done first | Any, plus CI |
 | 6 | libstats post-adoption patch | libstats milestone #8, bucketed 2026-09-29: #103, #104, #111, #144 wait for task 3's sweep and timing (#144 needs the first post-swap Zen 4 session; moot if #111 lands NEVER); #114 one pass after the swap. #146 is a task 3 prerequisite (below) | All three |
 
 Task 1 precedes task 2 for a reason beyond the owed confirmation: on the
@@ -151,7 +162,10 @@ spine and the libhmm track finish, and none has an order yet.
 4. ~~2a on the x86 machines~~ (DONE 2026-09-30, both), then 2b (corvus
    v1.1.0; IN PROGRESS — #42 lever 2 landed 2026-09-30, next pickup on
    any machine is #42 lever 1 or #43; M1 ctest `a78eddd` first — Zen 4 done 2026-09-30),
-   then task 2 resumes and task 3 runs once.
+   then task 2 resumes and task 3 runs once. 2c (libstats-side levers)
+   DONE on Zen 4 2026-10-03, alongside 2b: its Kaby Lake and M1 legs fit
+   any session on those machines and should precede task 3, which
+   measures against the kernels 2c restored.
 5. Task 7 alongside 2b, on whichever machine is free.
 
 Side tasks A, E, F, J and K fit any gap; L fits the gaps in task 2 and
