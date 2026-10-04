@@ -227,6 +227,18 @@ The contract settled at pylibhmm v0.10.0 and pylibstats v0.5.0
   grows on upstream's schedule — which is what flipped a passing
   2026-08-01 canary to a tag-day failure with no commit in between. Same
   reasoning as the action pinning in §5.
+- **Require CMake 4.1.2+ through `cmake.version`, not the runner image.**
+  It is upstream's supported CMake for free-threaded builds: below it,
+  scikit-build-core cannot set `Python_FIND_ABI` without breaking
+  `Development.Module` discovery. 1.1.0 set it regardless and failed every
+  3.14t job on the runners' CMake 3.31 (2026-09-28, both repos;
+  scikit-build/scikit-build-core#1597); 1.1.1 reverted to a fallback. Set
+  `cmake.version = ">=4.1.2"` under `[tool.scikit-build]` — when the CMake
+  on PATH is older, scikit-build-core fetches one from PyPI, so CI, the
+  wheel jobs and sdist users all build on the same supported floor
+  without a workflow step. A scikit-build-core release that breaks a job
+  is excluded by `!=`, not capped by `<`: a cap also blocks the fixed
+  release after it.
 
 ## 10. Verification discipline
 
