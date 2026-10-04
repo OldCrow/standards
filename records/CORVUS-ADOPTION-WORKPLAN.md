@@ -2,8 +2,8 @@
 
 Status: **ACTIVE — written 2026-09-28**, at the return from the
 2026-09-17 → 2026-09-28 travel period. This is the one in-progress record
-in `records/`; it becomes historical when libstats v2.5.0 and the libhmm
-spike verdict have shipped.
+in `records/`; it becomes historical when libstats v3.0.0 (corvus adoption,
+formerly v2.5.0) and the libhmm spike verdict have shipped.
 
 **What this file is.** The cross-repo order of work and the machine each
 task needs. It exists because a session on one fleet machine cannot see a
@@ -56,6 +56,17 @@ Facts that change the plan:
   2c work). After v2.4.2 ships, `dev/v2.5.0-corvus` rebases onto `main`;
   ten files will need a decision each (guide in libstats `PLAN.md`,
   "Rebase onto `main` after v2.4.2 ships").
+- **libstats release renumbering 2026-10-04** [user; Kaby Lake session]:
+  `dev/v2.4.2` ships as **libstats v2.5.0** (correctness fixes, 0
+  contract violations, re-derived dispatch tables, clang-cl), and
+  corvus adoption (`dev/v2.5.0-corvus`, milestone #6) becomes
+  **v3.0.0**: its installed package adds
+  `find_dependency(corvus 1.0 CONFIG)`, which a `SameMajorVersion`
+  consumer of 2.x would accept and then fail on. New Distributions
+  becomes v3.1.0; the Architecture Refactor is post-v3. Branch names
+  stay, so `v2.5.0` in branch names and in entries above this one
+  means the corvus line. Detail: libstats `PLAN.md`, Decided, "Release
+  numbering". GitHub milestone retitles are owed.
 - **Travel-period decisions are recorded, not pending:** libstats v2.5.0
   scope (full swap, milestone #6), the wheel cost-out (pylibstats #20),
   and the libhmm spike's paper half with pre-registered go/no-go criteria
@@ -93,7 +104,7 @@ Facts that change the plan:
 | 2b | corvus v1.1.0 throughput: incomplete gamma/beta family and inverses with a scalar entry point (#42), NEON elementary import from libstats' clean-room kernels (#43), lgamma (#31), x86 erf (#37); release + libstats pin bump | corvus milestone v1.1.0. **IN PROGRESS** (2026-09-30, Kaby Lake): #42 lever 2 landed on corvus `main` at `a78eddd` — the driver pads the masked tail with a live element (single calls now cost one vector: gamma_p 2.9×, lgamma 2.6× faster, bit-identical) plus eight scalar entry points; ctest 34/34 AVX2. Owed: #42 lever 1 (per-element kernel cost — the ≤ 250 ns single-call target lives there), #43, #31, #37; NEON (M1) ctest of `a78eddd` before the release (AVX-512 DONE 2026-09-30 on Zen 4: 34/34 tier-asserted `AVX3_ZEN4`); the libstats pin bump must replace the deducing `corvus_scalar` wrapper with the scalar entry points (overload sets); corvus `docs/PERFORMANCE.md` §4/§8.2 re-run at v1.1.0. Detail: corvus `PLAN.md` Status, corvus #42 | All three (quiet for the timing); M1 owes the `a78eddd` ctest |
 | 2c | libstats-side levers from the 2a analysis, on `dev/v2.5.0-corvus`, independent of corvus: (1) revert the elementary-family swap except erf on x86; (2) discrete-quantile search from a normal guess, Student-t quantile with one inverse call off the tail; (3) Windows on clang-cl | libstats #156. **DONE on Zen 4 2026-10-03** (`e62a616`, `45000c6`, `c51e2ed`; clang-cl `420eaf1`, `402f624`, `003c3ad`; AVX-512 block regenerated at `a036ffb`): ctest 74/74, timing 22/22, sweep 35 contract violations, unchanged. INDICATIVE Zen 4 numbers: exp/log/cos/sin back at v2.4.1 cost and erf 3.4× faster than v2.4.1; batch pdf/logpdf for gamma, beta, Student-t back at parity; quantile binomial 145 → 8.3 µs, poisson 9.2 → 2.5 µs, Student-t 43.7 → 27.7 µs. libstats builds with clang-cl (presets `windows-clang-cl`, `-strict`; `-T ClangCL`; a CI leg, 5 min vs MSVC 18) and matches the cl.exe + clang-cl-corvus speed. What stays corvus-owned (2b, #42): scalar CDF 7–17×, batch CDF beta/binomial/Student-t 3–8×, quantile gamma family 10–17×, Student-t 39×. Consequences: corvus #43 is now a deduplication, not a libstats throughput dependency; libstats #107/#108/#110 are open again in substance. Owed: Kaby Lake and M1 legs (ctest, sweep with block regeneration, bench — the M1's NEON kernels are restored untested), a quiet warmed record pass on Zen 4. Detail: libstats `PLAN.md` Status | Zen 4 done; Kaby Lake and M1 owe their legs; all three quiet for the record |
 | 3 | Post-swap sweep, validation matrix, same-machine x86 erf timing (after 2b — runs once, against the final kernel costs); correct the unmeasured `~5×` erf comment in `dispatch_thresholds.h` from the result | libstats `PLAN.md` Next Steps 3(a)–(b); capped tiers on Kaby Lake | All three |
-| 4 | libstats v2.5.0 release | Milestone #6 close | Any, with the signing key |
+| 4 | libstats v3.0.0 release (corvus; formerly v2.5.0) | Milestone #6 close | Any, with the signing key |
 | 5 | pylibstats v0.8.0: pin bump, LICENSE and NOTICE, Windows wheel job (moves to clang-cl with the pin — pylibstats #26) | pylibstats #20, #26; needs side task J done first | Any, plus CI |
 | 6 | libstats post-adoption patch | libstats milestone #8, bucketed 2026-09-29: #103, #104, #111, #144 wait for task 3's sweep and timing (#144 needs the first post-swap Zen 4 session; moot if #111 lands NEVER); #114 one pass after the swap. #146 is a task 3 prerequisite (below) | All three |
 
@@ -133,8 +144,8 @@ spine and the libhmm track finish, and none has an order yet.
 
 | Repo | Milestone | Depends on |
 |---|---|---|
-| libstats | v2.6.0 — New Distributions (#58–#62) | v2.5.0 shipped; pylibstats bindings and stubs follow |
-| libstats | v3.0.0 — Architecture Refactor (#40–#43, #128) | After v2.6.0 |
+| libstats | v3.1.0 — New Distributions (#58–#62; formerly v2.6.0) | v3.0.0 (corvus) shipped; pylibstats bindings and stubs follow |
+| libstats | Post-v3 — Architecture Refactor (#40–#43, #128; v3.x or v4, undecided) | After v3.1.0 |
 | libhmm | v4.5.0 — Algorithm Coverage (#47, #48, #51, #52, #96, #97) | After task 8 |
 | libhmm | v5.0.0 — API (#95, #98) | After v4.5.0 |
 | libhmm | Unmilestoned features (#50 HSMM, #53 IOHMM) | No milestone assigned |
