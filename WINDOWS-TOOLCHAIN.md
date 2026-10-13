@@ -189,6 +189,17 @@ and found through `CMAKE_PREFIX_PATH`; everything with `cl.exe` (slow
 corvus). One FetchContent tree cannot mix compilers, which is why the
 second needs the installed prefix.
 
+**ISA flags.** Give clang-cl `cl.exe`'s `/arch:` flags, not GNU `-m`
+flags, so both compilers build the same ISA from one CMake branch:
+`/arch:AVX2` is AVX2 plus FMA, F16C, BMI1/2, LZCNT and MOVBE;
+`/arch:AVX512` adds AVX-512 F, CD, BW, DQ and VL. Branch on
+`MSVC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND WIN32)` for per-file
+SIMD flags (libstats `cmake/SIMDApplication.cmake`, `606607f`). With
+FMA enabled clang-cl contracts `a*b + c` by default (`-ffp-contract=on`)
+while `cl.exe` does not, so an exact-arithmetic sequence must spell its
+fusions or turn contraction off for its file; clang-cl takes that as
+`/clang:-ffp-contract=off`.
+
 **Porting a repo to clang-cl** — what broke in libstats, in order of how
 much it explained:
 
@@ -216,3 +227,22 @@ must say `Clang` with the `MSVC` frontend — because a leg that falls back
 to `cl.exe` still builds and tests green. Hosted runners do not all have
 AVX-512, so a leg cannot assert a SIMD tier; tier evidence comes from
 native runs.
+
+## 6. Timing runs: power throttling
+
+A locked screen puts running processes under Windows power throttling
+(EcoQoS): the process runs at base clock, about
+1.5× slower on a Zen 4 laptop, and it keeps that state after unlock
+(libstats, 2026-10-05: an overnight R3/R8 run throttled for its whole
+length). Timing results from such a run read as a dispatch or threshold
+anomaly, not as a clock change.
+
+Opt each measured process out before it starts measuring:
+`SetProcessInformation(…, ProcessPowerThrottling, …)` with
+`PROCESS_POWER_THROTTLING_EXECUTION_SPEED` in `ControlMask` and a
+`StateMask` of 0. It is per process, changes no system setting, and is
+not inherited by children, so launch every timed binary yourself rather
+than through `ctest` or another runner. A PowerShell helper that sets
+and reads the state is in libstats
+`docs/bench-evidence/2026-10-05-zen4-msvc-vs-clangcl/nothrottle.ps1`.
+Correctness runs need none of this.
