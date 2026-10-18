@@ -88,7 +88,11 @@ Facts that change the plan:
   green, a native M1 run owed). **Row 3 (#59) DONE 2026-10-18 on Z**
   (`3462e6a`: DdDivDd floor fixed with fail-first both-subnormal rows,
   35/35 at AVX3_ZEN4/SSE4/SSE2; DdSqrt floor documented, prescale
-  deferred [user]). Next: row 4, #58 Expm1Dd + #49 one-arg Log1pmxDd (K).
+  deferred [user]); CI green. **Row 4 (#58 + #49) DONE 2026-10-19 on Z**
+  (`c42f7e3`: gammainv's 2-arg Log1pmxDd and the #49 band deleted;
+  Expm1Dd series to 2^-6 with new dd gates; 35/35 at AVX3_ZEN4/SSE4/SSE2;
+  CI owed). Next: row 5, #47 R4 seam + #51 gamma_q −denorm_min, whose
+  fixes delete the #47 and #51 bands.
 - **libhmm defect hunt 2026-10-12** [Kaby Lake]: 27 issues (#112–#138)
   filed and split across three milestones, and the release order revised
   [user]: v4.4.2 Safety & contract patch (#7, crash cluster, fail-first
