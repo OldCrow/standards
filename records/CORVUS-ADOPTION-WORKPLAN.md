@@ -83,7 +83,9 @@ Facts that change the plan:
   import, corvus exp/log stay correctly rounded via fast paths; re-gated
   on all three machines). #62 DONE 2026-10-16. The re-read of libstats
   `PLAN.md` after the release changed nothing in the corvus order. Next
-  corvus pickup: order row 2, #53 guard harness (K).
+  corvus pickup: order row 2, #53 guard harness (K). **Row 2 DONE
+  2026-10-18 on Z** (strict known-defect bands, one per open issue; CI
+  and the M1 NEON run owed). Next: row 3, #59 (K or Z capped legs).
 - **libhmm defect hunt 2026-10-12** [Kaby Lake]: 27 issues (#112–#138)
   filed and split across three milestones, and the release order revised
   [user]: v4.4.2 Safety & contract patch (#7, crash cluster, fail-first
