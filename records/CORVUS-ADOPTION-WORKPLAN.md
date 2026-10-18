@@ -85,7 +85,10 @@ Facts that change the plan:
   `PLAN.md` after the release changed nothing in the corvus order. Next
   corvus pickup: order row 2, #53 guard harness (K). **Row 2 DONE
   2026-10-18 on Z** (strict known-defect bands, one per open issue; CI
-  and the M1 NEON run owed). Next: row 3, #59 (K or Z capped legs).
+  green, a native M1 run owed). **Row 3 (#59) DONE 2026-10-18 on Z**
+  (`3462e6a`: DdDivDd floor fixed with fail-first both-subnormal rows,
+  35/35 at AVX3_ZEN4/SSE4/SSE2; DdSqrt floor documented, prescale
+  deferred [user]). Next: row 4, #58 Expm1Dd + #49 one-arg Log1pmxDd (K).
 - **libhmm defect hunt 2026-10-12** [Kaby Lake]: 27 issues (#112–#138)
   filed and split across three milestones, and the release order revised
   [user]: v4.4.2 Safety & contract patch (#7, crash cluster, fail-first
