@@ -99,8 +99,11 @@ Facts that change the plan:
   and a 4-step dd CF tail, which makes gamma R1/R2 correctly rounded or
   1 ulp, re-pinned; Temme tail z.lo back inside its bound, remainder in
   #64; INDICATIVE cost R1 +~40%, R2 +~3% [user accepted]; 35/35 on three
-  tiers; CI owed, native M1 leg owed). Next: row 7, #48 gammainv small-a
-  seeds (frontier).
+  tiers; CI green, native M1 leg owed). **Row 7 (#48) DONE 2026-10-19 on
+  Z** (`07ca2f6`: bracketed Newton phase in gammainv [user's design
+  choice], which takes small-a upper-tail failures from 1,648/6,000 to 0;
+  388 certified rows; INDICATIVE +17% in two bench bands; 35/35 on three
+  tiers; CI owed). Next: row 8, #54 beta gamma-limit slice (frontier).
 - **libhmm defect hunt 2026-10-12** [Kaby Lake]: 27 issues (#112–#138)
   filed and split across three milestones, and the release order revised
   [user]: v4.4.2 Safety & contract patch (#7, crash cluster, fail-first
