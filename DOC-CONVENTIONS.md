@@ -19,6 +19,29 @@ document wins when two disagree.
 `AGENTS.md` is canonical. `CLAUDE.md` is never a competing rules file —
 it is a pointer, and nothing else.
 
+**Layer diagram.** Each C++ repo also carries `docs/architecture-layers.svg`
+(corvus, libhmm, libstats, ewcalc). The Python bindings do not: their
+diagram would be one box over the core library. The rules:
+
+- One style fleet-wide, the corvus band style: stacked rounded bands, top =
+  consumer-facing, bottom = foundation (C++ standard library, or the SIMD
+  backend), adjacency = dependency. Bands hold a title and an 11px
+  subtitle; groups hold lighter sub-blocks and white pills. Things used
+  across layers go in an orange side column, not in the stack.
+- Explicit fills, no CSS, so it renders the same under GitHub's light and
+  dark themes. No version stamp: libstats's `docs/UML/` set carried one
+  and read as stale from the v2.5.0 release on, content unchanged.
+- Draw it at the layer level. File and class names in it are examples, not
+  an inventory; commentary goes in subtitles, listings in pills.
+- README and the repo's architecture doc embed it. AGENTS.md's reading map
+  marks it VISUAL REFERENCE ONLY — it restates the Architecture section and
+  adds no constraint — and says when to update it: a layer or top-level
+  directory added, removed, or moved.
+
+Process-level diagrams (class hierarchies, dispatch flows) are separate
+and optional; libstats keeps its own in `docs/UML/` under its own style
+guide.
+
 ## 2. AGENTS.md
 
 Required sections: **Overview**, **Build/Test/Run Commands**,
