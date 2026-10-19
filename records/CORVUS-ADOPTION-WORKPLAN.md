@@ -103,7 +103,13 @@ Facts that change the plan:
   Z** (`07ca2f6`: bracketed Newton phase in gammainv [user's design
   choice], which takes small-a upper-tail failures from 1,648/6,000 to 0;
   388 certified rows; INDICATIVE +17% in two bench bands; 35/35 on three
-  tiers; CI owed). Next: row 8, #54 beta gamma-limit slice (frontier).
+  tiers; CI green). **Row 8 (#54) defect 1 DONE 2026-10-19 on Z**
+  (`e376460`: shifted dd t = −(N + (s−1)/2)·log1p(−w) in the beta
+  gamma-limit slice and the betainv transfer; 195 ₂F₁-certified rows,
+  HEAD up to 11,592 ULP -> 0; gates re-pinned to 0/0; 35/35 on three
+  tiers; CI green). #54 stays open for defect 2, deferred [user] until
+  #65 (R3 in the gamma-limit band) is diagnosed. Next: #65 diagnosis,
+  then #54 defect 2, then row 9.
 - **libhmm defect hunt 2026-10-12** [Kaby Lake]: 27 issues (#112–#138)
   filed and split across three milestones, and the release order revised
   [user]: v4.4.2 Safety & contract patch (#7, crash cluster, fail-first
