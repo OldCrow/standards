@@ -91,8 +91,11 @@ Facts that change the plan:
   deferred [user]); CI green. **Row 4 (#58 + #49) DONE 2026-10-19 on Z**
   (`c42f7e3`: gammainv's 2-arg Log1pmxDd and the #49 band deleted;
   Expm1Dd series to 2^-6 with new dd gates; 35/35 at AVX3_ZEN4/SSE4/SSE2;
-  CI owed). Next: row 5, #47 R4 seam + #51 gamma_q −denorm_min, whose
-  fixes delete the #47 and #51 bands.
+  CI owed). **Row 5 (#47 + #51) DONE 2026-10-19 on Z** (`50961b3`: R4
+  window is R2's own predicate, 1,414 certified seam rows; gamma_q sign
+  clamp; #47 and #51 bands deleted; #47's inverse half moved to #55 under
+  a new strict band [user]; 35/35 at AVX3_ZEN4/SSE4/SSE2; CI owed). Next:
+  row 6, #56 gamma R1/R2 ridge + #57 Temme z.lo (frontier; K, M1, Z).
 - **libhmm defect hunt 2026-10-12** [Kaby Lake]: 27 issues (#112–#138)
   filed and split across three milestones, and the release order revised
   [user]: v4.4.2 Safety & contract patch (#7, crash cluster, fail-first
