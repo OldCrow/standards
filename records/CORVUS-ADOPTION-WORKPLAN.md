@@ -94,8 +94,13 @@ Facts that change the plan:
   CI owed). **Row 5 (#47 + #51) DONE 2026-10-19 on Z** (`50961b3`: R4
   window is R2's own predicate, 1,414 certified seam rows; gamma_q sign
   clamp; #47 and #51 bands deleted; #47's inverse half moved to #55 under
-  a new strict band [user]; 35/35 at AVX3_ZEN4/SSE4/SSE2; CI owed). Next:
-  row 6, #56 gamma R1/R2 ridge + #57 Temme z.lo (frontier; K, M1, Z).
+  a new strict band [user]; 35/35 at AVX3_ZEN4/SSE4/SSE2; CI green).
+  **Row 6 (#56 + #57) DONE 2026-10-19 on Z** (`7f0e18a`: dd series terms
+  and a 4-step dd CF tail, which makes gamma R1/R2 correctly rounded or
+  1 ulp, re-pinned; Temme tail z.lo back inside its bound, remainder in
+  #64; INDICATIVE cost R1 +~40%, R2 +~3% [user accepted]; 35/35 on three
+  tiers; CI owed, native M1 leg owed). Next: row 7, #48 gammainv small-a
+  seeds (frontier).
 - **libhmm defect hunt 2026-10-12** [Kaby Lake]: 27 issues (#112–#138)
   filed and split across three milestones, and the release order revised
   [user]: v4.4.2 Safety & contract patch (#7, crash cluster, fail-first
