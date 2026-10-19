@@ -107,9 +107,13 @@ Facts that change the plan:
   (`e376460`: shifted dd t = −(N + (s−1)/2)·log1p(−w) in the beta
   gamma-limit slice and the betainv transfer; 195 ₂F₁-certified rows,
   HEAD up to 11,592 ULP -> 0; gates re-pinned to 0/0; 35/35 on three
-  tiers; CI green). #54 stays open for defect 2, deferred [user] until
-  #65 (R3 in the gamma-limit band) is diagnosed. Next: #65 diagnosis,
-  then #54 defect 2, then row 9.
+  tiers; CI green). **#65 closed 2026-10-19 as not a defect** (an oracle
+  that lost precision in the probe, not the kernel). **Row 8 (#54) defect 2 DONE 2026-10-20 on Z**
+  (`a82fd0e`: near-1 prefactor logs taken from the smaller of (ξ, 1−ξ)
+  in beta and betainv; B_GL re-derived at the literal 2^-60 target,
+  2^59 -> 2^47; 1,098 ₂F₁-certified rows in [2^40, 2^59), HEAD up to
+  8 ULP -> within gates; 35/35 on three tiers; CI green). #54 closed.
+  Next: row 9.
 - **libhmm defect hunt 2026-10-12** [Kaby Lake]: 27 issues (#112–#138)
   filed and split across three milestones, and the release order revised
   [user]: v4.4.2 Safety & contract patch (#7, crash cluster, fail-first
