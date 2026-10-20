@@ -129,7 +129,12 @@ Facts that change the plan:
   band on the betainv orientation probe and the #47 router mirror in
   BetaInvForward; a convergence-checked Newton tail; a certified
   backward-interval gate, 752/752; strict bands deleted; 35/35 on three
-  tiers; CI green). #55, #50, #60 closed. Next: row 10 (#52).
+  tiers; CI green). #55, #50, #60 closed. **Row 10 (#52) DONE 2026-10-20
+  on Z** (`806b330`: Bessel tail's last Horner step in dd; 8,730 oracle
+  rows, HEAD at 2 ULP -> 1; CI green). **Row 11 (#61) DONE 2026-10-20 on
+  Z** (`ae51623`: generator self-checks hardened; 3,001 erf subnormal
+  rows; CI green). Row 12 (#53 remainder) in progress; its re-score found
+  new gamma_q contract excesses awaiting a scope decision (corvus PLAN.md).
 - **libhmm defect hunt 2026-10-12** [Kaby Lake]: 27 issues (#112–#138)
   filed and split across three milestones, and the release order revised
   [user]: v4.4.2 Safety & contract patch (#7, crash cluster, fail-first
