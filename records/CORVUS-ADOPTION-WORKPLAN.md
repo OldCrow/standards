@@ -31,9 +31,21 @@ Facts that change the plan:
   v1.0.0 froze the surface and the libstats swap is correctness-complete
   on `dev/v2.5.0-corvus`, but its M1 throughput (special-function CDF
   12–24×, quantile 8–66× slower; libstats "perf: v2.5.0 throughput"
-  issue, milestone #6) gates the release. Decision [user]: corvus v1.1.0
+  issue, milestone #6) gates the release. Decision [user]: corvus
   throughput first (corvus #42, #43, #31; #37 for x86), then task 3 once
   against the final kernel costs. Consumers still pin v1.0.1.
+- **corvus splits correctness from performance (2026-10-20) [user].**
+  corvus v1.1.0 ships the correctness block only: order rows 2–12, then
+  native M1 and Kaby Lake validation, PR to `main` and the tag. The
+  throughput work (rows 13–17: #42 lever 1, #45, #31, #22) moves to the
+  new corvus milestone v1.2.0, branched off `main` after v1.1.0. So
+  **the consumer pin bump, and libstats' release gate (libstats #156,
+  retitled), target corvus v1.2.0.** v1.1.0 is an optional
+  accuracy-only bump.
+- **Fleet coherence rule [user, 2026-10-20]: libhmm adopts the same
+  corvus release as libstats.** Its adoption spike (task 7, libhmm #106)
+  is run, and its criteria are judged, against that release, which is now
+  corvus v1.2.0, never an earlier pin.
 - **The Mac Mini M1 moved from macOS Tahoe 26 to macOS 27 Golden Gate during the
   travel period** [user, 2026-09-28]. Every M1 validation and timing
   record before that date is a Tahoe record. Toolchain and Apple libm
@@ -113,7 +125,11 @@ Facts that change the plan:
   in beta and betainv; B_GL re-derived at the literal 2^-60 target,
   2^59 -> 2^47; 1,098 ₂F₁-certified rows in [2^40, 2^59), HEAD up to
   8 ULP -> within gates; 35/35 on three tiers; CI green). #54 closed.
-  Next: row 9.
+  **Row 9 (#55, #50, #60) DONE 2026-10-20 on Z** (`0915989`: logit tie
+  band on the betainv orientation probe and the #47 router mirror in
+  BetaInvForward; a convergence-checked Newton tail; a certified
+  backward-interval gate, 752/752; strict bands deleted; 35/35 on three
+  tiers; CI green). #55, #50, #60 closed. Next: row 10 (#52).
 - **libhmm defect hunt 2026-10-12** [Kaby Lake]: 27 issues (#112–#138)
   filed and split across three milestones, and the release order revised
   [user]: v4.4.2 Safety & contract patch (#7, crash cluster, fail-first
@@ -154,7 +170,7 @@ Facts that change the plan:
 | ~~1~~ | ~~Pre-swap baseline: regenerate the characterization sweep at v2.4.1~~ | DONE 2026-09-28 on all three: Zen 4 (AVX-512, 34 → 32); Kaby Lake (AVX2, 34 → 32, same rows); M1 (NEON, 32 → 32, geometric logpdf max_rel 0.865 → 2.9e-11). The M1 leg shows one von Mises `cdf` row moved with macOS 27, not with code: v2.4.0's commit rebuilt on macOS 27 differs from v2.4.1 only in the two #125 rows. The plan's 63 → 61 was the older 6063-row grid | ~~Zen 4~~, ~~Kaby Lake~~, ~~M1~~ |
 | 2 | v2.5.0 core swap on a dev branch, corvus pinned at v1.0.1 | libstats milestone #6. **PARKED, correctness-complete** (2026-09-29): `dev/v2.5.0-corvus`, five increments on the M1 — engine + adapters, inverses + hot loops, Bessel, the elementary family, notices/CI/docs; ctest 74/74 and a NEON sweep at each step; accuracy delivered (libstats `PLAN.md` Next Steps (c)). Resumes after 2b; CI green on the branch at `01ade5c` (2026-09-29). Still owed then: ~~Kaby Lake and Zen 4 legs~~ (both done; re-run at the pin bump). Kaby Lake leg DONE 2026-09-30: `6b78cd5` native AVX2, correctness 74/74, sweep 32 → 35 (the M1's rows), AVX2 block regenerated; two timing-label tests regress vs v2.4.1 on that machine (libstats `PLAN.md` Next Steps 6(c)). Zen 4 leg DONE 2026-09-30 at `ead51e0`: MSVC `/arch:AVX512`, ctest 74/74 against both a clang-cl corvus (`AVX3_ZEN4`) and an MSVC corvus (`AVX2` cap), AVX-512 sweep 32 → 35 (the same rows), the two corvus builds bit-identical over all 9798 rows, AVX-512 block regenerated; four exp/log SIMD-speedup timing gates fail on the branch there | M1 ~~done~~; ~~Kaby Lake~~ done; ~~Zen 4~~ done |
 | ~~2a~~ | ~~Fleet throughput comparatives of the branch: run `tools/bench/` (v2.4.1 vs branch, elementary family, corvus per-call scaling) on the x86 machines — decides the elementary-family question per ISA and gives corvus its fleet targets~~ | libstats perf issue (milestone #6). DONE: Zen 4 2026-09-30 (`docs/bench-evidence/2026-09-30-zen4-quiet-warm/`), Kaby Lake 2026-09-30 (`docs/bench-evidence/2026-09-30-kaby-quiet/`, quiet, one pass). Same verdict on both ISAs: keep corvus erf on x86, exp/log are the loss (3–6×); scalar CDF 7–20× and quantiles 7–75× are the per-call price. corvus AVX2 targets per element: erf 6.5, exp 8.0, lgamma 58, gamma_p 152, beta_p 1,024, gamma_p_inv 1,886 ns | ~~Kaby Lake~~, ~~Zen 4~~ |
-| 2b | corvus v1.1.0 throughput: incomplete gamma/beta family and inverses with a scalar entry point (#42), NEON elementary import from libstats' clean-room kernels (#43), lgamma (#31), x86 erf (#37); release + libstats pin bump | corvus milestone v1.1.0. **IN PROGRESS.** 2026-10-16 state: ~~#43~~ DONE 2026-10-12 (rescoped, see Facts); ~~#37~~ CLOSED 2026-10-16 (premise retired by 2a/2c: corvus erf stays on x86, 3.4× faster than v2.4.1 on Zen 4); the v1.1.0 correctness block (corvus order rows 2–12, five frontier designs) now precedes #42 lever 1 (row 13) and #31 (row 15) [user, 2026-10-10]. Earlier: (2026-09-30, Kaby Lake): #42 lever 2 landed on corvus `main` at `a78eddd` — the driver pads the masked tail with a live element (single calls now cost one vector: gamma_p 2.9×, lgamma 2.6× faster, bit-identical) plus eight scalar entry points; ctest 34/34 AVX2. Owed: #42 lever 1 (per-element kernel cost — the ≤ 250 ns single-call target lives there), #43, #31, #37; ~~NEON (M1) ctest of `a78eddd` before the release~~ (DONE both halves: AVX-512 2026-09-30 on Zen 4, 34/34 tier-asserted `AVX3_ZEN4`; NEON 2026-10-02 on M1, 34/34 tier-asserted `NEON` at `4534d30`); the libstats pin bump must replace the deducing `corvus_scalar` wrapper with the scalar entry points (overload sets); corvus `docs/PERFORMANCE.md` §4/§8.2 re-run at v1.1.0. Detail: corvus `PLAN.md` Status, corvus #42 | All three (quiet for the timing); ~~M1 owes the `a78eddd` ctest~~ done 2026-10-02 |
+| 2b | corvus throughput (v1.2.0 since the 2026-10-20 split; was v1.1.0): incomplete gamma/beta family and inverses with a scalar entry point (#42), NEON elementary import from libstats' clean-room kernels (#43), lgamma (#31), x86 erf (#37); release + libstats pin bump | corvus milestone v1.1.0. **IN PROGRESS.** 2026-10-16 state: ~~#43~~ DONE 2026-10-12 (rescoped, see Facts); ~~#37~~ CLOSED 2026-10-16 (premise retired by 2a/2c: corvus erf stays on x86, 3.4× faster than v2.4.1 on Zen 4); the v1.1.0 correctness block (corvus order rows 2–12, five frontier designs) now precedes #42 lever 1 (row 13) and #31 (row 15) [user, 2026-10-10]. Earlier: (2026-09-30, Kaby Lake): #42 lever 2 landed on corvus `main` at `a78eddd` — the driver pads the masked tail with a live element (single calls now cost one vector: gamma_p 2.9×, lgamma 2.6× faster, bit-identical) plus eight scalar entry points; ctest 34/34 AVX2. Owed: #42 lever 1 (per-element kernel cost — the ≤ 250 ns single-call target lives there), #43, #31, #37; ~~NEON (M1) ctest of `a78eddd` before the release~~ (DONE both halves: AVX-512 2026-09-30 on Zen 4, 34/34 tier-asserted `AVX3_ZEN4`; NEON 2026-10-02 on M1, 34/34 tier-asserted `NEON` at `4534d30`); the libstats pin bump must replace the deducing `corvus_scalar` wrapper with the scalar entry points (overload sets); corvus `docs/PERFORMANCE.md` §4/§8.2 re-run at v1.1.0. Detail: corvus `PLAN.md` Status, corvus #42 | All three (quiet for the timing); ~~M1 owes the `a78eddd` ctest~~ done 2026-10-02 |
 | 2c | libstats-side levers from the 2a analysis, on `dev/v2.5.0-corvus`, independent of corvus: (1) revert the elementary-family swap except erf on x86; (2) discrete-quantile search from a normal guess, Student-t quantile with one inverse call off the tail; (3) Windows on clang-cl | libstats #156. **DONE on Zen 4 2026-10-03** (`e62a616`, `45000c6`, `c51e2ed`; clang-cl `420eaf1`, `402f624`, `003c3ad`; AVX-512 block regenerated at `a036ffb`): ctest 74/74, timing 22/22, sweep 35 contract violations, unchanged. INDICATIVE Zen 4 numbers: exp/log/cos/sin back at v2.4.1 cost and erf 3.4× faster than v2.4.1; batch pdf/logpdf for gamma, beta, Student-t back at parity; quantile binomial 145 → 8.3 µs, poisson 9.2 → 2.5 µs, Student-t 43.7 → 27.7 µs. libstats builds with clang-cl (presets `windows-clang-cl`, `-strict`; `-T ClangCL`; a CI leg, 5 min vs MSVC 18) and matches the cl.exe + clang-cl-corvus speed. What stays corvus-owned (2b, #42): scalar CDF 7–17×, batch CDF beta/binomial/Student-t 3–8×, quantile gamma family 10–17×, Student-t 39×. Consequences: corvus #43 is now a deduplication, not a libstats throughput dependency; libstats #107/#108/#110 are open again in substance. Owed: Kaby Lake and M1 legs (ctest, sweep with block regeneration, bench — the M1's NEON kernels are restored untested), a quiet warmed record pass on Zen 4. Detail: libstats `PLAN.md` Status | Zen 4 done; Kaby Lake and M1 owe their legs; all three quiet for the record |
 | 3 | Post-swap sweep, validation matrix, same-machine x86 erf timing (after 2b — runs once, against the final kernel costs); correct the unmeasured `~5×` erf comment in `dispatch_thresholds.h` from the result | libstats `PLAN.md` Next Steps 3(a)–(b); capped tiers on Kaby Lake | All three |
 | 4 | libstats v3.0.0 release (corvus; formerly v2.5.0) | Milestone #6 close | Any, with the signing key |
@@ -183,7 +199,7 @@ it, the post-swap NEON differences confound the two.
 | ~~B~~ | ~~Uniform speedup gate flake~~ | libstats #129 — DONE 2026-10-02 on Zen 4, PR #169 merged to `main` (`d8d3388`), with #168: every speedup gate in the timing-label tests timed its first call, and two paths timed in sequence could straddle the Zen 4 frequency step; all 17 gates now measure steady state with the paths interleaved. Timing suite 22/22 ×10 on Zen 4; Kaby Lake CONFIRMED 2026-10-02 (22/22 ×4, three quiet, one under heavy load, Dev build native AVX2); M1 CONFIRMED 2026-10-02 (22/22 ×10, NEON, under ambient load 4–10) | ~~Zen 4~~; ~~Kaby Lake~~; ~~M1~~ |
 | ~~L~~ | ~~Promote the sustained-crossover method into `threshold_validator` — before task 3~~ | libstats #146 — DONE, closed 2026-10-05: the method landed as `scripts/analyze_crossovers.py` (`3e9fde3`) with `scripts/derive_threshold_rows.py` on top, used by the v2.5.0 table re-derivation; task 3 uses those scripts | — |
 | C | M1 quiet-bench retry on macOS 27 | corvus `docs/PERFORMANCE.md` M1 rows are INDICATIVE. Attempted 2026-10-02 (10% gate, 30 min, locked, Backblaze paused, TM skipped): ABORT, min 11.88%, `mediaanalysisd` on idle in 134/173 samples — corvus `docs/bench-evidence/2026-10-02-m1-gate-abort/`. Next attempt holds off Photos analysis and automatic Time Machine first | M1 |
-| D | corvus v1.1.0 kernel work beyond 2b | corvus #22, #21, #18 | Kaby Lake first, then all |
+| D | corvus kernel work beyond 2b, all on milestone v1.2.0 ("Throughput & new exports"); #21 and #18 still gated | corvus #22, #21, #18 | Kaby Lake first, then all |
 | K | Linux aarch64 validation gap: the aarch64 wheel will ship corvus NEON compiled by GCC, a compiler × ISA pair no fleet machine validates | libstats `PLAN.md` Cross-Repo Dependencies; decide the remedy before task 5 ships wheels | CI (aarch64 runner) |
 | E | `load_hmm` wrapper decision | pylibhmm #31 | Any |
 | F | `errorf_inv` exposure investigation | libhmm #103 | Any |
@@ -232,13 +248,22 @@ spine and the libhmm track finish, and none has an order yet.
    DONE on Zen 4 2026-10-03, alongside 2b: its Kaby Lake and M1 legs fit
    any session on those machines and should precede task 3, which
    measures against the kernels 2c restored.
-5. Task 7 alongside 2b, on whichever machine is free.
+5. Task 7 alongside 2b, on whichever machine is free; under the fleet
+   coherence rule it measures against the corvus release libstats
+   adopts (v1.2.0), so its verdict is final only on that release.
 6. **From 2026-10-16:** libstats v2.5.0 is out and corvus is the critical
-   path again — the v1.1.0 correctness block (corvus order rows 2–12)
-   on K, with the frontier rows' M1 and Zen 4 legs as they come up; then
-   #42 lever 1, the v1.1.0 release and the libstats pin bump (task 2
-   resumes), then task 3 once. libhmm's 8a (v4.4.2 crash cluster) is
-   the gap-filler on any machine and does not wait on task 7.
+   path again. The sequence is now (revised 2026-10-20 [user]):
+   - the v1.1.0 correctness block (corvus order rows 2–12) on Z and K;
+   - a pause for the native M1 and Kaby Lake validation;
+   - the corvus v1.1.0 PR, tag and release;
+   - corvus v1.2.0 (#42 lever 1 and the rest of rows 13–17) on a branch
+     off `main`;
+   - the libstats and libhmm pin bumps to v1.2.0 (task 2 resumes, task 7
+     judged);
+   - task 3 once.
+
+   libhmm's 8a (v4.4.2 crash cluster) is the gap-filler on any machine
+   and does not wait on task 7.
 
 Side tasks A, E, F and K fit any gap (J and L are done). H's milestone
 #8 bucketing half is done (2026-09-29); its GitHub reconcile half
