@@ -133,8 +133,15 @@ Facts that change the plan:
   on Z** (`806b330`: Bessel tail's last Horner step in dd; 8,730 oracle
   rows, HEAD at 2 ULP -> 1; CI green). **Row 11 (#61) DONE 2026-10-20 on
   Z** (`ae51623`: generator self-checks hardened; 3,001 erf subnormal
-  rows; CI green). Row 12 (#53 remainder) in progress; its re-score found
-  new gamma_q contract excesses awaiting a scope decision (corvus PLAN.md).
+  rows; CI green). **Row 12 (#53) DONE 2026-10-20** (`825cc60`: drift,
+  harness gaps, beta exact ties). Its re-score found contract excesses,
+  added as rows 12a-12c [user]: **12a (#67) DONE 2026-10-21** (`cefaf95`:
+  gamma_q R4 4 -> 1 ULP), **12b (#64) DONE 2026-10-21** (`d0fb2e1`: dd erfc
+  tail G, gamma R3 3 -> 1), **12c (#69) DONE 2026-10-22** (`87ef42d`: beta's
+  copy of gamma's Temme tail brought in step, beta R3 4 -> 1; the twin-drift
+  rule now in corvus NUMERICAL-DOCTRINE.md). All CI green. **The v1.1.0
+  correctness rows (2-12c) are complete**; next is the pause for native M1
+  and Kaby Lake runs, then PR dev/v1.1.0 -> main, tag, release.
 - **libhmm defect hunt 2026-10-12** [Kaby Lake]: 27 issues (#112–#138)
   filed and split across three milestones, and the release order revised
   [user]: v4.4.2 Safety & contract patch (#7, crash cluster, fail-first
