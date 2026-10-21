@@ -188,7 +188,7 @@ unified cell at 2^-67.77).
 
 | # | Machine | Task | Done when |
 |---|---|---|---|
-| R0 | Z | Version bump to 1.1.0 (corvus.h `kVersion*` + `project(VERSION)`), `python tools/check_release_version.py --tag v1.1.0`, fresh configure + ctest, push. Makes R1/R2 the freeze-head checks. **Pending user OK.** | `dev/v1.1.0` HEAD carries 1.1.0; CI green |
+| ~~R0~~ | ~~Z~~ | ~~Version bump to 1.1.0, consistency check, fresh configure + ctest~~ | DONE 2026-10-22: `a8525a7` is the **v1.1.0 freeze head** (check_release_version agrees on 1.1.0; fresh clang-cl configure + 35/35 AVX3_ZEN4; CI run 39668576528 green, all three jobs). R1/R2 validate this commit |
 | R1 | M1 | Native NEON validation (steps below) | 35/35 under `CORVUS_EXPECT_TARGET=NEON`; ULP report equals CI's NEON job cell for cell; recorded |
 | R2 | Kaby Lake | AVX2 native + SSE4/SSSE3/SSE2 caps (steps below); optional GCC diagnostics leg | 35/35 on each of four tiers, tier-asserted; recorded |
 | R3 | Z | RELEASING.md: PR `dev/v1.1.0` → `main` (conflict-free: main is merged in), CI green on main, signed tag `v1.1.0`, GitHub release, close milestone 5 | Tag pushed; release published |
@@ -197,7 +197,7 @@ unified cell at 2^-67.77).
 **Common preflight (M1 and K).**
 1. `git fetch` and `git switch dev/v1.1.0 && git pull --ff-only` in
    corvus; pull standards too. Confirm HEAD equals `origin/dev/v1.1.0` and
-   is at or after the R0 commit (or `2ad4ffd` if R0 was skipped). Stop if
+   is at or after the R0 commit `a8525a7` (the freeze head). Stop if
    it isn't.
 2. Record the toolchain: macOS version, `clang --version` (AppleClang),
    CMake, Ninja, `brew info highway` version.
