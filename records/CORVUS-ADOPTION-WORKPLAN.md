@@ -5,6 +5,11 @@ Status: **ACTIVE — written 2026-09-28**, at the return from the
 in `records/`; it becomes historical when libstats v3.0.0 (corvus adoption,
 formerly v2.5.0) and the libhmm spike verdict have shipped.
 
+**Next up (2026-10-22): the corvus v1.1.0 release tail.** On M1 or Kaby
+Lake, go straight to the section "corvus v1.1.0 release tail — ACTIVE"
+below. It is self-contained: preflight, exact commands, expected results,
+how to record them, and what to do if anything differs.
+
 **What this file is.** The cross-repo order of work and the machine each
 task needs. It exists because a session on one fleet machine cannot see a
 session on another, and the ordering spans six repos.
@@ -163,6 +168,96 @@ Facts that change the plan:
 - Let the M1 settle after its OS upgrade before any timing run. Under
   Tahoe, background media analysis kept the 5% gate out of reach (corvus
   `docs/PERFORMANCE.md`); an OS upgrade usually restarts that indexing.
+
+## corvus v1.1.0 release tail — ACTIVE (written 2026-10-22 on Z)
+
+**Read this first on M1 or Kaby Lake.** corvus v1.1.0 (milestone 5,
+"Correctness hardening") is code-complete: order rows 2–12c are done on
+`dev/v1.1.0`, every issue closed, and CI is green on all three jobs (run
+39664514966 on `87ef42d`, NEON included). Nothing on this list changes code
+or data. The job is to reproduce the gates natively and record the
+results. The per-row detail lives in corvus `PLAN.md` (Status).
+
+Families whose kernels or reference sets changed in v1.1.0, so their native
+numbers are new: gamma_p/q (R1/R2 #56, R3 tail #57/#64, R4 #67),
+beta_p/q (#47, the gamma-limit slice #54, the R3 tail #69, exact-tie rows),
+gamma_p_inv/gamma_q_inv (#48), beta_p_inv/beta_q_inv (#50/#55/#60,
+including the certified backward-interval gate), i0/i1/i0e/i1e (#52),
+erf (3,001 subnormal rows), and the dd specials (#58/#49, Log1pmxDd's
+unified cell at 2^-67.77).
+
+| # | Machine | Task | Done when |
+|---|---|---|---|
+| R0 | Z | Version bump to 1.1.0 (corvus.h `kVersion*` + `project(VERSION)`), `python tools/check_release_version.py --tag v1.1.0`, fresh configure + ctest, push. Makes R1/R2 the freeze-head checks. **Pending user OK.** | `dev/v1.1.0` HEAD carries 1.1.0; CI green |
+| R1 | M1 | Native NEON validation (steps below) | 35/35 under `CORVUS_EXPECT_TARGET=NEON`; ULP report equals CI's NEON job cell for cell; recorded |
+| R2 | Kaby Lake | AVX2 native + SSE4/SSSE3/SSE2 caps (steps below); optional GCC diagnostics leg | 35/35 on each of four tiers, tier-asserted; recorded |
+| R3 | Z | RELEASING.md: PR `dev/v1.1.0` → `main` (conflict-free: main is merged in), CI green on main, signed tag `v1.1.0`, GitHub release, close milestone 5 | Tag pushed; release published |
+| R4 | Z | Branch v1.2.0 off `main` after the tag (rows 13–17, milestone 7). libstats and libhmm adopt corvus v1.2.0, not v1.1.0 (fleet coherence rule) | `dev/v1.2.0` exists |
+
+**Common preflight (M1 and K).**
+1. `git fetch` and `git switch dev/v1.1.0 && git pull --ff-only` in
+   corvus; pull standards too. Confirm HEAD equals `origin/dev/v1.1.0` and
+   is at or after the R0 commit (or `2ad4ffd` if R0 was skipped). Stop if
+   it isn't.
+2. Record the toolchain: macOS version, `clang --version` (AppleClang),
+   CMake, Ninja, `brew info highway` version.
+3. Use a fresh build directory (`build-<machine>-v110`). Run no generator
+   and no Python: nothing is regenerated.
+
+**R1, M1 (NEON native, AppleClang 21).**
+1. `sysctl hw.optional.arm.FEAT_BF16` must print 0. The M1 has no BF16,
+   so native dispatch is NEON; if it prints 1, stop.
+2. `cmake -B build-m1-v110 -G Ninja -DCMAKE_BUILD_TYPE=Release -DCORVUS_WERROR=ON -DCMAKE_PREFIX_PATH="$(brew --prefix)"`,
+   then `cmake --build build-m1-v110`. Expect 0 warnings.
+3. `CORVUS_EXPECT_TARGET=NEON ctest --test-dir build-m1-v110 --output-on-failure`:
+   35/35.
+4. Negative check: `CORVUS_EXPECT_TARGET=AVX2 ctest --test-dir build-m1-v110`
+   must FAIL, which proves the tier assertion is load-bearing.
+5. ULP report: run the gate commands of `.github/workflows/ci.yml`'s macOS
+   "ULP report" step verbatim, with `./build/` replaced by
+   `./build-m1-v110/`, and tee the output to a log. Compare it cell for
+   cell with the "ULP report" step of CI run 39664514966's macOS job
+   (`gh run view 39664514966 --log --job <macOS job id>`). Every max-ULP
+   cell, not-CR count and worst input should match: same silicon class,
+   same compiler family.
+6. Spot-check that the log contains the v1.1.0 results: gamma R3 P/Q
+   direct 1, R4 Q direct 1, R4 P complement 1; beta R3 direct 1; Bessel
+   tails 1; Log1pmxDd |u| >= 2^-40 at 2^-67.78 or better; betainv
+   certified backward intervals 0 outside (p and q); erf 17,595 points,
+   max 1.
+
+**R2, Kaby Lake (AVX2+FMA native, AppleClang 15).**
+1. Run the per-tier recipe in corvus `docs/ENVIRONMENT.md` ("Per-tier
+   validation recipe", the shell loop) for AVX2, SSE4, SSSE3 and SSE2, with
+   `-G Ninja -DCMAKE_BUILD_TYPE=Release -DCORVUS_WERROR=ON` added to its
+   configure line. Each tier gets 35/35 under its own `CORVUS_EXPECT_TARGET`.
+   Check each run's "active SIMD target" line. A failed build must stop the
+   loop, because otherwise the next tier re-measures stale binaries.
+2. Expect SSE4, SSSE3 and SSE2 to be bit-identical to each other (every
+   max-ULP cell, not-CR count and worst input), and AVX2 to match the AVX2
+   leg of CI run 39664514966's Linux job cell for cell.
+3. Optional diagnostics leg (no validation numbers come from it): Homebrew
+   GCC 16 with `-DCORVUS_DISABLED_TARGETS=HWY_AVX10_2 -DCORVUS_DEV_WARNINGS=ON -DCORVUS_WERROR=ON`:
+   0 warnings, 35/35 under `CORVUS_EXPECT_TARGET=AVX2` (ENVIRONMENT.md,
+   "macOS: Homebrew GCC must be capped").
+4. Quiet benches are NOT part of this list. The PERFORMANCE.md re-run
+   moved to v1.2.0, and the v1.1.0 cost numbers stay marked indicative.
+
+**Recording (R1 and R2; pre-approved bookkeeping, signed commits).**
+- corvus `PLAN.md`: a "v1.1.0 native validation" entry with the machine,
+  date, toolchain versions, commit, per-tier result, and any deviation.
+- corvus `docs/ACCURACY.md`: R1 updates the NEON column date for the
+  changed families listed above. R2 adds a line to the matrix's † note (the
+  Kaby Lake cross-machine reproduction at v1.1.0: four tiers, 35/35,
+  tier-asserted).
+- This table: strike R1/R2 and add the date and commit.
+
+**If anything fails or differs.** That means a gate failure, a tier
+mismatch against CI, a warning, or a cell that differs from CI's. Stop.
+Edit no gate, kernel or reference file on M1 or K. Record the exact output
+in corvus `PLAN.md` under an [OPEN] item, push, and hand it back for
+diagnosis. Only a pure toolchain or environment problem may be fixed in
+place and re-run; record what it was.
 
 ## Precursor work (catch-up, per machine)
 
