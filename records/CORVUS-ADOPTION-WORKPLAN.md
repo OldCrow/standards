@@ -5,10 +5,18 @@ Status: **ACTIVE — written 2026-09-28**, at the return from the
 in `records/`; it becomes historical when libstats v3.0.0 (corvus adoption,
 formerly v2.5.0) and the libhmm spike verdict have shipped.
 
-**Next up (2026-10-22): the corvus v1.1.0 release tail.** On M1 or Kaby
-Lake, go straight to the section "corvus v1.1.0 release tail — ACTIVE"
-below. It is self-contained: preflight, exact commands, expected results,
-how to record them, and what to do if anything differs.
+**ON HOLD (2026-10-22): do NOT run R1/R2 yet.** An external adversarial
+review of the freeze head `a8525a7` found accuracy defects, verified on Z.
+The user added v1.1.0 order rows 12d–12j (corvus #70–#76), preceded by a
+tooling assessment. `a8525a7` is no longer the freeze head. When 12j is
+done, R0 is re-run on Z and the new freeze head is written below; only
+then do M1 and Kaby Lake run R1/R2. The runbook below stays valid apart
+from the commit named in preflight step 1.
+
+**Next up (once the hold is lifted): the corvus v1.1.0 release tail.** On
+M1 or Kaby Lake, go straight to the section "corvus v1.1.0 release tail —
+ACTIVE" below. It is self-contained: preflight, exact commands, expected
+results, how to record them, and what to do if anything differs.
 
 **What this file is.** The cross-repo order of work and the machine each
 task needs. It exists because a session on one fleet machine cannot see a
@@ -188,17 +196,17 @@ unified cell at 2^-67.77).
 
 | # | Machine | Task | Done when |
 |---|---|---|---|
-| ~~R0~~ | ~~Z~~ | ~~Version bump to 1.1.0, consistency check, fresh configure + ctest~~ | DONE 2026-10-22: `a8525a7` is the **v1.1.0 freeze head** (check_release_version agrees on 1.1.0; fresh clang-cl configure + 35/35 AVX3_ZEN4; CI run 39668576528 green, all three jobs). R1/R2 validate this commit |
-| R1 | M1 | Native NEON validation (steps below) | 35/35 under `CORVUS_EXPECT_TARGET=NEON`; ULP report equals CI's NEON job cell for cell; recorded |
-| R2 | Kaby Lake | AVX2 native + SSE4/SSSE3/SSE2 caps (steps below); optional GCC diagnostics leg | 35/35 on each of four tiers, tier-asserted; recorded |
+| R0 | Z | REOPENED 2026-10-22. After rows 12d–12j: consistency check, fresh configure + ctest, CI green; write the new freeze head here (the version is already 1.1.0) | First pass `a8525a7` (CI run 39668576528) is superseded by the review rows |
+| R1 | M1 | **ON HOLD until the new R0.** Native NEON validation (steps below) | 35/35 under `CORVUS_EXPECT_TARGET=NEON`; ULP report equals CI's NEON job cell for cell; recorded |
+| R2 | Kaby Lake | **ON HOLD until the new R0.** AVX2 native + SSE4/SSSE3/SSE2 caps (steps below); optional GCC diagnostics leg | 35/35 on each of four tiers, tier-asserted; recorded |
 | R3 | Z | RELEASING.md: PR `dev/v1.1.0` → `main` (conflict-free: main is merged in), CI green on main, signed tag `v1.1.0`, GitHub release, close milestone 5 | Tag pushed; release published |
 | R4 | Z | Branch v1.2.0 off `main` after the tag (rows 13–17, milestone 7). libstats and libhmm adopt corvus v1.2.0, not v1.1.0 (fleet coherence rule) | `dev/v1.2.0` exists |
 
 **Common preflight (M1 and K).**
 1. `git fetch` and `git switch dev/v1.1.0 && git pull --ff-only` in
    corvus; pull standards too. Confirm HEAD equals `origin/dev/v1.1.0` and
-   is at or after the R0 commit `a8525a7` (the freeze head). Stop if
-   it isn't.
+   is at or after the freeze head named in the R0 row. Stop if it isn't,
+   or if R0 is still open.
 2. Record the toolchain: macOS version, `clang --version` (AppleClang),
    CMake, Ninja, `brew info highway` version.
 3. Use a fresh build directory (`build-<machine>-v110`). Run no generator
