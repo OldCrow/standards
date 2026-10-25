@@ -180,10 +180,10 @@ Facts that change the plan:
 ## corvus v1.1.0 release tail — ACTIVE (written 2026-10-22 on Z, refreshed 2026-10-25)
 
 **Read this first on M1 or Kaby Lake.** corvus v1.1.0 (milestone 5,
-"Correctness hardening") is code-complete: order rows 2–12k are done on
+"Correctness hardening") is code-complete: order rows 2–12l are done on
 `dev/v1.1.0` (12-T and 12d–12k came from the 2026-10-22 adversarial
-review and the hunt campaign; 12j, the contract text, landed last as
-`c95207b`). The R0 row names the freeze head and its green CI run, and
+review and the hunt campaign; 12j is the contract text; 12l (#90), from
+the Z audit, restores the gamma-limit slice's published 1 ULP). The R0 row names the freeze head and its green CI run, and
 every step below that cites "the R0 CI run" means that run. Nothing on
 this list changes code or data. The job is to reproduce the gates natively
 and record the results. The per-row detail lives in corvus `PLAN.md`
@@ -201,11 +201,13 @@ erfinv subnormal input (#73); erfc's top subnormal binade (#74); the
 Bessel series near |x| ≈ 7.4 (#75); beta's gamma-limit ridge (#84) and
 R1-complement lgamma (#85). Row 12j (#76) changes gates and reference rows
 only: lbeta 1 ULP / 2^-53 absolute, beta R2 complement 1, exp's near-tie
-allowance, and witness rows in beta, lbeta, trigamma and gammainv.
+allowance, and witness rows in beta, lbeta, trigamma and gammainv. Row
+12l (#90) is the same kind: beta's gamma-limit gates go to 1, with six
+witness rows.
 
 | # | Machine | Task | Done when |
 |---|---|---|---|
-| R0 | Z | REOPENED 2026-10-22. Rows 12d–12k done 2026-10-25 (last `c95207b`). Remaining: consistency check, fresh configure + ctest, CI green; write the new freeze head and its CI run here (the version is already 1.1.0) | First pass `a8525a7` (CI run 39668576528) is superseded by the review rows |
+| R0 | Z | REOPENED 2026-10-22. Rows 12d–12l done 2026-10-25. Remaining: consistency check, fresh configure + ctest, CI green; write the new freeze head and its CI run here (the version is already 1.1.0) | First pass `a8525a7` (CI run 39668576528) is superseded by the review rows |
 | R1 | M1 | **ON HOLD until the new R0.** Native NEON validation (steps below) | 36/36 under `CORVUS_EXPECT_TARGET=NEON`; ULP report equals the R0 CI run's NEON job cell for cell; recorded |
 | R2 | Kaby Lake | **ON HOLD until the new R0.** AVX2 native + SSE4/SSSE3/SSE2 caps (steps below); optional GCC diagnostics leg | 36/36 on each of four tiers, tier-asserted; recorded |
 | R3 | Z | RELEASING.md: PR `dev/v1.1.0` → `main` (conflict-free: main is merged in), CI green on main, signed tag `v1.1.0`, GitHub release, close milestone 5 | Tag pushed; release published |
@@ -245,7 +247,7 @@ allowance, and witness rows in beta, lbeta, trigamma and gammainv.
    direct 1, R4 Q direct 1, R4 P complement 1; beta R3 direct 1; Bessel
    tails 1; Log1pmxDd |u| >= 2^-40 at 2^-67.78 or better; betainv
    certified backward intervals 0 outside (p and q); erf 17,595 points,
-   max 1; lbeta max 1 ULP; beta gamma-limit slice 0 ULP; exp's report
+   max 1; lbeta max 1 ULP; beta gamma-limit slice max 1 ULP (#90); exp's report
    prints a near-ties count. `grep -l deferred: tests/data/*_reference.txt`
    prints nothing: v1.1.0 ships no deferred rows.
 7. Optional, a diagnostic and not a gate: the route census. Configure a
