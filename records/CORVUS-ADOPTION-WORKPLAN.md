@@ -7,9 +7,9 @@ formerly v2.5.0) and the libhmm spike verdict have shipped.
 
 **Hold lifted 2026-10-25.** The 2026-10-22 hold (adversarial review of
 `a8525a7`, rows 12d–12l) ended when R0 re-ran on Z: freeze head `0508ef1`.
-R2 (Kaby Lake) is DONE 2026-10-25; R1 (M1) is owed.
+R1 (M1) and R2 (Kaby Lake) are DONE 2026-10-25; R3 (PR, tag, release) on Z is next.
 
-**Next up: the corvus v1.1.0 release tail.** On M1, go straight to the
+**Next up: the corvus v1.1.0 release tail.** On Z, go straight to R3 in the
 section "corvus v1.1.0 release tail — ACTIVE" below. It is self-contained: preflight, exact commands, expected
 results, how to record them, and what to do if anything differs.
 
@@ -203,7 +203,7 @@ witness rows.
 | # | Machine | Task | Done when |
 |---|---|---|---|
 | R0 | Z | ~~REOPENED 2026-10-22; rows 12d–12l, consistency check, fresh configure + ctest, CI green~~ **DONE 2026-10-25. Freeze head `0508ef1`; the R0 CI run is 40238527638** (green on all three jobs). Fresh clang-cl configure, 0-warning build, 36/36 at AVX3_ZEN4, negative check fails, version check OK | First pass `a8525a7` (CI run 39668576528) is superseded by the review rows |
-| R1 | M1 | **NEXT.** Native NEON validation (steps below) | 36/36 under `CORVUS_EXPECT_TARGET=NEON`; ULP report equals the R0 CI run's NEON job cell for cell; recorded |
+| R1 | M1 | ~~Native NEON validation (steps below)~~ **DONE 2026-10-25 at `0508ef1`** (HEAD `66bf5fa`; macOS 27.0.1, AppleClang 21.0.0, Highway 1.4.0): 0 warnings, 36/36 tier-asserted NEON, negative check fails 34/36; ULP report identical to the R0 CI NEON job (147 max-ULP lines, every not-CR count and worst input); route census 4 unexercised, 0 mismatches, 5 argued unreachable, as on Z. Recorded in corvus `a317ee3`; detail: corvus `PLAN.md` | 36/36 under `CORVUS_EXPECT_TARGET=NEON`; ULP report equals the R0 CI run's NEON job cell for cell; recorded |
 | R2 | Kaby Lake | ~~AVX2 native + SSE4/SSSE3/SSE2 caps (steps below); optional GCC diagnostics leg~~ **DONE 2026-10-25 at `0508ef1`** (HEAD `b870466`): 36/36 on all four tiers, tier-asserted, 0 warnings, negative check fails; AVX2 ULP report equals the R0 CI AVX2 job; no-FMA tiers bit-identical; GCC 16.2.0 leg 0 warnings, 36/36. Detail: corvus `PLAN.md` | 36/36 on each of four tiers, tier-asserted; recorded |
 | R3 | Z | RELEASING.md: PR `dev/v1.1.0` → `main` (conflict-free: main is merged in), CI green on main, signed tag `v1.1.0`, GitHub release, close milestone 5 | Tag pushed; release published |
 | R4 | Z | Branch v1.2.0 off `main` after the tag (rows 13–17, milestone 7). libstats and libhmm adopt corvus v1.2.0, not v1.1.0 (fleet coherence rule) | `dev/v1.2.0` exists |
@@ -237,7 +237,9 @@ locally; the echoed commands (ANSI-coloured) have no local counterpart.
 gh run view 40238527638 --log --job 121305146149 | awk -F'\t' '$2=="ULP report"{sub(/^[^ ]+ /,"",$3); print $3}' > ci-ulp-neon.log
 gh run view 40238527638 --log --job 121305146417 | awk -F'\t' '$2=="ULP report"{sub(/^[^ ]+ /,"",$3); print $3}' > ci-ulp-avx2.log
 ```
-Each holds 147 "max ULP" lines.
+Each holds 147 "max ULP" lines. gh 2.103.2 (2026-10-23) labels every
+step `UNKNOWN STEP`, so this `awk` prints nothing; slice the step at its
+`##[group]Run export CORVUS_EXPECT_TARGET=…` line instead (R1 did).
 
 **R1, M1 (NEON native, AppleClang 21).**
 1. `sysctl hw.optional.arm.FEAT_BF16` must print 0. The M1 has no BF16,
@@ -264,7 +266,8 @@ Each holds 147 "max ULP" lines.
 7. Optional, a diagnostic and not a gate: the route census. Configure a
    second directory with `-DCORVUS_ROUTE_CENSUS=ON`, build its
    `hunt_probe` target, and run
-   `python3 tools/hunt/route_census.py --build <dir>` (stdlib only). Expect
+   `python3 tools/hunt/route_census.py --build <dir>` (needs mpmath through
+   `annotate.py`; use a venv that has it). Expect
    0 mismatches. Z reads 4 unexercised and 5 argued unreachable, and the
    script exits 1 while any route is unexercised. Record the summary line;
    a different unexercised count is a finding to record, not a failure.
