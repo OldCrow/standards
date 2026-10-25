@@ -177,14 +177,17 @@ Facts that change the plan:
   Tahoe, background media analysis kept the 5% gate out of reach (corvus
   `docs/PERFORMANCE.md`); an OS upgrade usually restarts that indexing.
 
-## corvus v1.1.0 release tail — ACTIVE (written 2026-10-22 on Z)
+## corvus v1.1.0 release tail — ACTIVE (written 2026-10-22 on Z, refreshed 2026-10-25)
 
 **Read this first on M1 or Kaby Lake.** corvus v1.1.0 (milestone 5,
-"Correctness hardening") is code-complete: order rows 2–12c are done on
-`dev/v1.1.0`, every issue closed, and CI is green on all three jobs (run
-39664514966 on `87ef42d`, NEON included). Nothing on this list changes code
-or data. The job is to reproduce the gates natively and record the
-results. The per-row detail lives in corvus `PLAN.md` (Status).
+"Correctness hardening") is code-complete: order rows 2–12k are done on
+`dev/v1.1.0` (12-T and 12d–12k came from the 2026-10-22 adversarial
+review and the hunt campaign; 12j, the contract text, landed last as
+`c95207b`). The R0 row names the freeze head and its green CI run, and
+every step below that cites "the R0 CI run" means that run. Nothing on
+this list changes code or data. The job is to reproduce the gates natively
+and record the results. The per-row detail lives in corvus `PLAN.md`
+(Status).
 
 Families whose kernels or reference sets changed in v1.1.0, so their native
 numbers are new: gamma_p/q (R1/R2 #56, R3 tail #57/#64, R4 #67),
@@ -192,13 +195,19 @@ beta_p/q (#47, the gamma-limit slice #54, the R3 tail #69, exact-tie rows),
 gamma_p_inv/gamma_q_inv (#48), beta_p_inv/beta_q_inv (#50/#55/#60,
 including the certified backward-interval gate), i0/i1/i0e/i1e (#52),
 erf (3,001 subnormal rows), and the dd specials (#58/#49, Log1pmxDd's
-unified cell at 2^-67.77).
+unified cell at 2^-67.77). Rows 12d–12k add: gamma_q's R3 core split
+(#70) and R4 subnormal a (#71); gammainv deep-subnormal targets (#72);
+erfinv subnormal input (#73); erfc's top subnormal binade (#74); the
+Bessel series near |x| ≈ 7.4 (#75); beta's gamma-limit ridge (#84) and
+R1-complement lgamma (#85). Row 12j (#76) changes gates and reference rows
+only: lbeta 1 ULP / 2^-53 absolute, beta R2 complement 1, exp's near-tie
+allowance, and witness rows in beta, lbeta, trigamma and gammainv.
 
 | # | Machine | Task | Done when |
 |---|---|---|---|
-| R0 | Z | REOPENED 2026-10-22. After rows 12d–12j: consistency check, fresh configure + ctest, CI green; write the new freeze head here (the version is already 1.1.0) | First pass `a8525a7` (CI run 39668576528) is superseded by the review rows |
-| R1 | M1 | **ON HOLD until the new R0.** Native NEON validation (steps below) | 35/35 under `CORVUS_EXPECT_TARGET=NEON`; ULP report equals CI's NEON job cell for cell; recorded |
-| R2 | Kaby Lake | **ON HOLD until the new R0.** AVX2 native + SSE4/SSSE3/SSE2 caps (steps below); optional GCC diagnostics leg | 35/35 on each of four tiers, tier-asserted; recorded |
+| R0 | Z | REOPENED 2026-10-22. Rows 12d–12k done 2026-10-25 (last `c95207b`). Remaining: consistency check, fresh configure + ctest, CI green; write the new freeze head and its CI run here (the version is already 1.1.0) | First pass `a8525a7` (CI run 39668576528) is superseded by the review rows |
+| R1 | M1 | **ON HOLD until the new R0.** Native NEON validation (steps below) | 36/36 under `CORVUS_EXPECT_TARGET=NEON`; ULP report equals the R0 CI run's NEON job cell for cell; recorded |
+| R2 | Kaby Lake | **ON HOLD until the new R0.** AVX2 native + SSE4/SSSE3/SSE2 caps (steps below); optional GCC diagnostics leg | 36/36 on each of four tiers, tier-asserted; recorded |
 | R3 | Z | RELEASING.md: PR `dev/v1.1.0` → `main` (conflict-free: main is merged in), CI green on main, signed tag `v1.1.0`, GitHub release, close milestone 5 | Tag pushed; release published |
 | R4 | Z | Branch v1.2.0 off `main` after the tag (rows 13–17, milestone 7). libstats and libhmm adopt corvus v1.2.0, not v1.1.0 (fleet coherence rule) | `dev/v1.2.0` exists |
 
@@ -209,8 +218,12 @@ unified cell at 2^-67.77).
    or if R0 is still open.
 2. Record the toolchain: macOS version, `clang --version` (AppleClang),
    CMake, Ninja, `brew info highway` version.
-3. Use a fresh build directory (`build-<machine>-v110`). Run no generator
-   and no Python: nothing is regenerated.
+3. Use a fresh build directory (`build-<machine>-v110`). Run no generator:
+   nothing is regenerated.
+4. Python 3 (standard library only) must be on PATH when you configure.
+   ctest's `claims_check` test runs it to read every documented bound
+   against the gates. Without it the configure skips that test silently,
+   and ctest reports 35, not 36. `python3 --version` goes in the record.
 
 **R1, M1 (NEON native, AppleClang 21).**
 1. `sysctl hw.optional.arm.FEAT_BF16` must print 0. The M1 has no BF16,
@@ -218,35 +231,46 @@ unified cell at 2^-67.77).
 2. `cmake -B build-m1-v110 -G Ninja -DCMAKE_BUILD_TYPE=Release -DCORVUS_WERROR=ON -DCMAKE_PREFIX_PATH="$(brew --prefix)"`,
    then `cmake --build build-m1-v110`. Expect 0 warnings.
 3. `CORVUS_EXPECT_TARGET=NEON ctest --test-dir build-m1-v110 --output-on-failure`:
-   35/35.
+   36/36.
 4. Negative check: `CORVUS_EXPECT_TARGET=AVX2 ctest --test-dir build-m1-v110`
    must FAIL, which proves the tier assertion is load-bearing.
 5. ULP report: run the gate commands of `.github/workflows/ci.yml`'s macOS
    "ULP report" step verbatim, with `./build/` replaced by
    `./build-m1-v110/`, and tee the output to a log. Compare it cell for
-   cell with the "ULP report" step of CI run 39664514966's macOS job
-   (`gh run view 39664514966 --log --job <macOS job id>`). Every max-ULP
+   cell with the "ULP report" step of the R0 CI run's macOS job
+   (`gh run view <R0 run> --log --job <macOS job id>`). Every max-ULP
    cell, not-CR count and worst input should match: same silicon class,
    same compiler family.
 6. Spot-check that the log contains the v1.1.0 results: gamma R3 P/Q
    direct 1, R4 Q direct 1, R4 P complement 1; beta R3 direct 1; Bessel
    tails 1; Log1pmxDd |u| >= 2^-40 at 2^-67.78 or better; betainv
    certified backward intervals 0 outside (p and q); erf 17,595 points,
-   max 1.
+   max 1; lbeta max 1 ULP; beta gamma-limit slice 0 ULP; exp's report
+   prints a near-ties count. `grep -l deferred: tests/data/*_reference.txt`
+   prints nothing: v1.1.0 ships no deferred rows.
+7. Optional, a diagnostic and not a gate: the route census. Configure a
+   second directory with `-DCORVUS_ROUTE_CENSUS=ON`, build its
+   `hunt_probe` target, and run
+   `python3 tools/hunt/route_census.py --build <dir>` (stdlib only). Expect
+   0 mismatches. Z reads 4 unexercised and 5 argued unreachable, and the
+   script exits 1 while any route is unexercised. Record the summary line;
+   a different unexercised count is a finding to record, not a failure.
 
 **R2, Kaby Lake (AVX2+FMA native, AppleClang 15).**
 1. Run the per-tier recipe in corvus `docs/ENVIRONMENT.md` ("Per-tier
    validation recipe", the shell loop) for AVX2, SSE4, SSSE3 and SSE2, with
    `-G Ninja -DCMAKE_BUILD_TYPE=Release -DCORVUS_WERROR=ON` added to its
-   configure line. Each tier gets 35/35 under its own `CORVUS_EXPECT_TARGET`.
+   configure line. Each tier gets 36/36 under its own `CORVUS_EXPECT_TARGET`.
    Check each run's "active SIMD target" line. A failed build must stop the
    loop, because otherwise the next tier re-measures stale binaries.
 2. Expect SSE4, SSSE3 and SSE2 to be bit-identical to each other (every
    max-ULP cell, not-CR count and worst input), and AVX2 to match the AVX2
-   leg of CI run 39664514966's Linux job cell for cell.
+   leg of the R0 CI run's Linux job cell for cell. FMA and no-FMA tiers may
+   differ within their bounds: trigamma, cos(1.0) and one betainv row are
+   known cases (corvus ACCURACY.md, under the validation matrix).
 3. Optional diagnostics leg (no validation numbers come from it): Homebrew
    GCC 16 with `-DCORVUS_DISABLED_TARGETS=HWY_AVX10_2 -DCORVUS_DEV_WARNINGS=ON -DCORVUS_WERROR=ON`:
-   0 warnings, 35/35 under `CORVUS_EXPECT_TARGET=AVX2` (ENVIRONMENT.md,
+   0 warnings, 36/36 under `CORVUS_EXPECT_TARGET=AVX2` (ENVIRONMENT.md,
    "macOS: Homebrew GCC must be capped").
 4. Quiet benches are NOT part of this list. The PERFORMANCE.md re-run
    moved to v1.2.0, and the v1.1.0 cost numbers stay marked indicative.
@@ -256,7 +280,7 @@ unified cell at 2^-67.77).
   date, toolchain versions, commit, per-tier result, and any deviation.
 - corvus `docs/ACCURACY.md`: R1 updates the NEON column date for the
   changed families listed above. R2 adds a line to the matrix's † note (the
-  Kaby Lake cross-machine reproduction at v1.1.0: four tiers, 35/35,
+  Kaby Lake cross-machine reproduction at v1.1.0: four tiers, 36/36,
   tier-asserted).
 - This table: strike R1/R2 and add the date and commit.
 
