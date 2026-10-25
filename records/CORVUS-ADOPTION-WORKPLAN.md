@@ -207,9 +207,9 @@ witness rows.
 
 | # | Machine | Task | Done when |
 |---|---|---|---|
-| R0 | Z | REOPENED 2026-10-22. Rows 12d–12l done 2026-10-25. Remaining: consistency check, fresh configure + ctest, CI green; write the new freeze head and its CI run here (the version is already 1.1.0) | First pass `a8525a7` (CI run 39668576528) is superseded by the review rows |
-| R1 | M1 | **ON HOLD until the new R0.** Native NEON validation (steps below) | 36/36 under `CORVUS_EXPECT_TARGET=NEON`; ULP report equals the R0 CI run's NEON job cell for cell; recorded |
-| R2 | Kaby Lake | **ON HOLD until the new R0.** AVX2 native + SSE4/SSSE3/SSE2 caps (steps below); optional GCC diagnostics leg | 36/36 on each of four tiers, tier-asserted; recorded |
+| R0 | Z | ~~REOPENED 2026-10-22; rows 12d–12l, consistency check, fresh configure + ctest, CI green~~ **DONE 2026-10-25. Freeze head `0508ef1`; the R0 CI run is 40238527638** (green on all three jobs). Fresh clang-cl configure, 0-warning build, 36/36 at AVX3_ZEN4, negative check fails, version check OK | First pass `a8525a7` (CI run 39668576528) is superseded by the review rows |
+| R1 | M1 | **NEXT.** Native NEON validation (steps below) | 36/36 under `CORVUS_EXPECT_TARGET=NEON`; ULP report equals the R0 CI run's NEON job cell for cell; recorded |
+| R2 | Kaby Lake | **NEXT** (independent of R1). AVX2 native + SSE4/SSSE3/SSE2 caps (steps below); optional GCC diagnostics leg | 36/36 on each of four tiers, tier-asserted; recorded |
 | R3 | Z | RELEASING.md: PR `dev/v1.1.0` → `main` (conflict-free: main is merged in), CI green on main, signed tag `v1.1.0`, GitHub release, close milestone 5 | Tag pushed; release published |
 | R4 | Z | Branch v1.2.0 off `main` after the tag (rows 13–17, milestone 7). libstats and libhmm adopt corvus v1.2.0, not v1.1.0 (fleet coherence rule) | `dev/v1.2.0` exists |
 
