@@ -216,16 +216,33 @@ witness rows.
 **Common preflight (M1 and K).**
 1. `git fetch` and `git switch dev/v1.1.0 && git pull --ff-only` in
    corvus; pull standards too. Confirm HEAD equals `origin/dev/v1.1.0` and
-   is at or after the freeze head named in the R0 row. Stop if it isn't,
-   or if R0 is still open.
+   contains the freeze head: `git merge-base --is-ancestor 0508ef1 HEAD`.
+   Then confirm nothing but docs changed after it:
+   `git diff --stat 0508ef1 HEAD -- src include tests tools cmake CMakeLists.txt CMakePresets.json .github`
+   must print nothing. Stop if either fails, or if R0 is still open.
+   Record HEAD's hash; the code measured is `0508ef1`'s.
 2. Record the toolchain: macOS version, `clang --version` (AppleClang),
    CMake, Ninja, `brew info highway` version.
-3. Use a fresh build directory (`build-<machine>-v110`). Run no generator:
-   nothing is regenerated.
+3. Use a fresh build directory (`build-<machine>-v110`; K uses one per
+   tier, below). Run no generator: nothing is regenerated.
 4. Python 3 (standard library only) must be on PATH when you configure.
    ctest's `claims_check` test runs it to read every documented bound
    against the gates. Without it the configure skips that test silently,
    and ctest reports 35, not 36. `python3 --version` goes in the record.
+
+**CI reference (the R0 run).** Run 40238527638 on `0508ef1`, all three
+jobs green. The macOS job is 121305146149: its runner reported
+`FEAT_BF16: 0` and native NEON, the M1's class. The Linux job is
+121305146417, and its "ULP report" step runs at AVX2. Save each job's
+ULP-report step first, with `gh` authenticated. GitHub keeps run logs
+about 90 days, so until roughly 2027-01-23. The `awk` keeps that step's
+lines and strips the timestamp, so the gate lines read as they do
+locally; the echoed commands (ANSI-coloured) have no local counterpart.
+```sh
+gh run view 40238527638 --log --job 121305146149 | awk -F'\t' '$2=="ULP report"{sub(/^[^ ]+ /,"",$3); print $3}' > ci-ulp-neon.log
+gh run view 40238527638 --log --job 121305146417 | awk -F'\t' '$2=="ULP report"{sub(/^[^ ]+ /,"",$3); print $3}' > ci-ulp-avx2.log
+```
+Each holds 147 "max ULP" lines.
 
 **R1, M1 (NEON native, AppleClang 21).**
 1. `sysctl hw.optional.arm.FEAT_BF16` must print 0. The M1 has no BF16,
@@ -238,16 +255,15 @@ witness rows.
    must FAIL, which proves the tier assertion is load-bearing.
 5. ULP report: run the gate commands of `.github/workflows/ci.yml`'s macOS
    "ULP report" step verbatim, with `./build/` replaced by
-   `./build-m1-v110/`, and tee the output to a log. Compare it cell for
-   cell with the "ULP report" step of the R0 CI run's macOS job
-   (`gh run view <R0 run> --log --job <macOS job id>`). Every max-ULP
+   `./build-m1-v110/`, and tee the output to `m1-ulp-neon.log`. Compare
+   it cell for cell with `ci-ulp-neon.log` (CI reference, above). Every max-ULP
    cell, not-CR count and worst input should match: same silicon class,
    same compiler family.
 6. Spot-check that the log contains the v1.1.0 results: gamma R3 P/Q
    direct 1, R4 Q direct 1, R4 P complement 1; beta R3 direct 1; Bessel
    tails 1; Log1pmxDd |u| >= 2^-40 at 2^-67.78 or better; betainv
-   certified backward intervals 0 outside (p and q); erf 17,595 points,
-   max 1; lbeta max 1 ULP; beta gamma-limit slice max 1 ULP (#90); exp's report
+   certified backward intervals 0 outside (p 371 rows, q 381); erf 19,439
+   points, max 1; lbeta max 1 ULP; beta gamma-limit slice max 1 ULP (#90); exp's report
    prints a near-ties count. `grep -l deferred: tests/data/*_reference.txt`
    prints nothing: v1.1.0 ships no deferred rows.
 7. Optional, a diagnostic and not a gate: the route census. Configure a
@@ -259,22 +275,43 @@ witness rows.
    a different unexercised count is a finding to record, not a failure.
 
 **R2, Kaby Lake (AVX2+FMA native, AppleClang 15).**
-1. Run the per-tier recipe in corvus `docs/ENVIRONMENT.md` ("Per-tier
-   validation recipe", the shell loop) for AVX2, SSE4, SSSE3 and SSE2, with
-   `-G Ninja -DCMAKE_BUILD_TYPE=Release -DCORVUS_WERROR=ON` added to its
-   configure line. Each tier gets 36/36 under its own `CORVUS_EXPECT_TARGET`.
-   Check each run's "active SIMD target" line. A failed build must stop the
-   loop, because otherwise the next tier re-measures stale binaries.
-2. Expect SSE4, SSSE3 and SSE2 to be bit-identical to each other (every
-   max-ULP cell, not-CR count and worst input), and AVX2 to match the AVX2
-   leg of the R0 CI run's Linux job cell for cell. FMA and no-FMA tiers may
+1. Run the per-tier caps of corvus `docs/ENVIRONMENT.md` ("Per-tier
+   validation recipe"), but with a fresh directory per tier and a stop on
+   the first failure. The recipe's own loop reuses `build-cap` and carries
+   on after a failed tier:
+   ```sh
+   BASE="HWY_AVX10_2|HWY_AVX3_SPR|HWY_AVX3_ZEN4|HWY_AVX3_DL|HWY_AVX3"
+   for TIER in AVX2 SSE4 SSSE3 SSE2; do
+     case $TIER in
+       AVX2)  CAP="$BASE" ;;
+       SSE4)  CAP="$BASE|HWY_AVX2" ;;
+       SSSE3) CAP="$BASE|HWY_AVX2|HWY_SSE4" ;;
+       SSE2)  CAP="$BASE|HWY_AVX2|HWY_SSE4|HWY_SSSE3" ;;
+     esac
+     B="build-k-v110-$TIER"
+     cmake -B "$B" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCORVUS_WERROR=ON \
+       -DCORVUS_DISABLED_TARGETS="$CAP" || break
+     cmake --build "$B" || break
+     CORVUS_EXPECT_TARGET="$TIER" ctest --test-dir "$B" --output-on-failure || break
+   done
+   ```
+   Each tier gets 36/36 under its own `CORVUS_EXPECT_TARGET`. If the loop
+   stops early, the tiers after the failed one did not run.
+2. ULP report, per tier: ctest prints nothing for passing gates, so run
+   the gate commands of `.github/workflows/ci.yml`'s Linux "ULP report"
+   step verbatim, under `CORVUS_EXPECT_TARGET=<tier>`, with `./build/`
+   replaced by `./build-k-v110-<tier>/`. Tee each to `k-ulp-<tier>.log`,
+   and check each log's "active SIMD target" line.
+3. Expect SSE4, SSSE3 and SSE2 to be bit-identical to each other (every
+   max-ULP cell, not-CR count and worst input), and `k-ulp-AVX2.log` to
+   match `ci-ulp-avx2.log` (CI reference, above) cell for cell. FMA and no-FMA tiers may
    differ within their bounds: trigamma, cos(1.0) and one betainv row are
    known cases (corvus ACCURACY.md, under the validation matrix).
-3. Optional diagnostics leg (no validation numbers come from it): Homebrew
+4. Optional diagnostics leg (no validation numbers come from it): Homebrew
    GCC 16 with `-DCORVUS_DISABLED_TARGETS=HWY_AVX10_2 -DCORVUS_DEV_WARNINGS=ON -DCORVUS_WERROR=ON`:
    0 warnings, 36/36 under `CORVUS_EXPECT_TARGET=AVX2` (ENVIRONMENT.md,
    "macOS: Homebrew GCC must be capped").
-4. Quiet benches are NOT part of this list. The PERFORMANCE.md re-run
+5. Quiet benches are NOT part of this list. The PERFORMANCE.md re-run
    moved to v1.2.0, and the v1.1.0 cost numbers stay marked indicative.
 
 **Recording (R1 and R2; pre-approved bookkeeping, signed commits).**
