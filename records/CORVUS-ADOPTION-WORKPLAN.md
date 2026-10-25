@@ -5,17 +5,12 @@ Status: **ACTIVE — written 2026-09-28**, at the return from the
 in `records/`; it becomes historical when libstats v3.0.0 (corvus adoption,
 formerly v2.5.0) and the libhmm spike verdict have shipped.
 
-**ON HOLD (2026-10-22): do NOT run R1/R2 yet.** An external adversarial
-review of the freeze head `a8525a7` found accuracy defects, verified on Z.
-The user added v1.1.0 order rows 12d–12j (corvus #70–#76), preceded by a
-tooling assessment. `a8525a7` is no longer the freeze head. When 12j is
-done, R0 is re-run on Z and the new freeze head is written below; only
-then do M1 and Kaby Lake run R1/R2. The runbook below stays valid apart
-from the commit named in preflight step 1.
+**Hold lifted 2026-10-25.** The 2026-10-22 hold (adversarial review of
+`a8525a7`, rows 12d–12l) ended when R0 re-ran on Z: freeze head `0508ef1`.
+R2 (Kaby Lake) is DONE 2026-10-25; R1 (M1) is owed.
 
-**Next up (once the hold is lifted): the corvus v1.1.0 release tail.** On
-M1 or Kaby Lake, go straight to the section "corvus v1.1.0 release tail —
-ACTIVE" below. It is self-contained: preflight, exact commands, expected
+**Next up: the corvus v1.1.0 release tail.** On M1, go straight to the
+section "corvus v1.1.0 release tail — ACTIVE" below. It is self-contained: preflight, exact commands, expected
 results, how to record them, and what to do if anything differs.
 
 **What this file is.** The cross-repo order of work and the machine each
@@ -209,7 +204,7 @@ witness rows.
 |---|---|---|---|
 | R0 | Z | ~~REOPENED 2026-10-22; rows 12d–12l, consistency check, fresh configure + ctest, CI green~~ **DONE 2026-10-25. Freeze head `0508ef1`; the R0 CI run is 40238527638** (green on all three jobs). Fresh clang-cl configure, 0-warning build, 36/36 at AVX3_ZEN4, negative check fails, version check OK | First pass `a8525a7` (CI run 39668576528) is superseded by the review rows |
 | R1 | M1 | **NEXT.** Native NEON validation (steps below) | 36/36 under `CORVUS_EXPECT_TARGET=NEON`; ULP report equals the R0 CI run's NEON job cell for cell; recorded |
-| R2 | Kaby Lake | **NEXT** (independent of R1). AVX2 native + SSE4/SSSE3/SSE2 caps (steps below); optional GCC diagnostics leg | 36/36 on each of four tiers, tier-asserted; recorded |
+| R2 | Kaby Lake | ~~AVX2 native + SSE4/SSSE3/SSE2 caps (steps below); optional GCC diagnostics leg~~ **DONE 2026-10-25 at `0508ef1`** (HEAD `b870466`): 36/36 on all four tiers, tier-asserted, 0 warnings, negative check fails; AVX2 ULP report equals the R0 CI AVX2 job; no-FMA tiers bit-identical; GCC 16.2.0 leg 0 warnings, 36/36. Detail: corvus `PLAN.md` | 36/36 on each of four tiers, tier-asserted; recorded |
 | R3 | Z | RELEASING.md: PR `dev/v1.1.0` → `main` (conflict-free: main is merged in), CI green on main, signed tag `v1.1.0`, GitHub release, close milestone 5 | Tag pushed; release published |
 | R4 | Z | Branch v1.2.0 off `main` after the tag (rows 13–17, milestone 7). libstats and libhmm adopt corvus v1.2.0, not v1.1.0 (fleet coherence rule) | `dev/v1.2.0` exists |
 
