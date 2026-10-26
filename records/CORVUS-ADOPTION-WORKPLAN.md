@@ -7,11 +7,13 @@ formerly v2.5.0) and the libhmm spike verdict have shipped.
 
 **Hold lifted 2026-10-25.** The 2026-10-22 hold (adversarial review of
 `a8525a7`, rows 12d–12l) ended when R0 re-ran on Z: freeze head `0508ef1`.
-R1 (M1) and R2 (Kaby Lake) are DONE 2026-10-25; R3 (PR, tag, release) on Z is next.
+R1 (M1) and R2 (Kaby Lake) are DONE 2026-10-25.
 
-**Next up: the corvus v1.1.0 release tail.** On Z, go straight to R3 in the
-section "corvus v1.1.0 release tail — ACTIVE" below. It is self-contained: preflight, exact commands, expected
-results, how to record them, and what to do if anything differs.
+**corvus v1.1.0 is released (2026-10-26).** R3 is done: signed tag
+`v1.1.0`, GitHub release
+https://github.com/OldCrow/corvus/releases/tag/v1.1.0, milestone 5
+closed. **Next up: R4 on Z**, branching `dev/v1.2.0` off `main` (section
+"corvus v1.1.0 release tail" below).
 
 **What this file is.** The cross-repo order of work and the machine each
 task needs. It exists because a session on one fleet machine cannot see a
@@ -205,7 +207,7 @@ witness rows.
 | R0 | Z | ~~REOPENED 2026-10-22; rows 12d–12l, consistency check, fresh configure + ctest, CI green~~ **DONE 2026-10-25. Freeze head `0508ef1`; the R0 CI run is 40238527638** (green on all three jobs). Fresh clang-cl configure, 0-warning build, 36/36 at AVX3_ZEN4, negative check fails, version check OK | First pass `a8525a7` (CI run 39668576528) is superseded by the review rows |
 | R1 | M1 | ~~Native NEON validation (steps below)~~ **DONE 2026-10-25 at `0508ef1`** (HEAD `66bf5fa`; macOS 27.0.1, AppleClang 21.0.0, Highway 1.4.0): 0 warnings, 36/36 tier-asserted NEON, negative check fails 34/36; ULP report identical to the R0 CI NEON job (147 max-ULP lines, every not-CR count and worst input); route census 4 unexercised, 0 mismatches, 5 argued unreachable, as on Z. Recorded in corvus `a317ee3`; detail: corvus `PLAN.md` | 36/36 under `CORVUS_EXPECT_TARGET=NEON`; ULP report equals the R0 CI run's NEON job cell for cell; recorded |
 | R2 | Kaby Lake | ~~AVX2 native + SSE4/SSSE3/SSE2 caps (steps below); optional GCC diagnostics leg~~ **DONE 2026-10-25 at `0508ef1`** (HEAD `b870466`): 36/36 on all four tiers, tier-asserted, 0 warnings, negative check fails; AVX2 ULP report equals the R0 CI AVX2 job; no-FMA tiers bit-identical; GCC 16.2.0 leg 0 warnings, 36/36. Detail: corvus `PLAN.md` | 36/36 on each of four tiers, tier-asserted; recorded |
-| R3 | Z | RELEASING.md: PR `dev/v1.1.0` → `main` (conflict-free: main is merged in), CI green on main, signed tag `v1.1.0`, GitHub release, close milestone 5 | Tag pushed; release published |
+| R3 | Z | ~~RELEASING.md: PR `dev/v1.1.0` → `main` (conflict-free: main is merged in), CI green on main, signed tag `v1.1.0`, GitHub release, close milestone 5~~ **DONE 2026-10-26.** PR #91 merged as `713bac3` (CI 40251301863 green); signed tag `v1.1.0` on docs commit `55dc705`, code-identical to `713bac3`; release published and marked latest; milestone 5 closed | Tag pushed; release published |
 | R4 | Z | Branch v1.2.0 off `main` after the tag (rows 13–17, milestone 7). libstats and libhmm adopt corvus v1.2.0, not v1.1.0 (fleet coherence rule) | `dev/v1.2.0` exists |
 
 **Common preflight (M1 and K).**
