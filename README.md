@@ -31,6 +31,10 @@ a time, and it says so in its first line.
 - [CORVUS-ADOPTION-WORKPLAN.md](records/CORVUS-ADOPTION-WORKPLAN.md)
   — the order of work and machine needs for adopting corvus in libstats
   and libhmm (ACTIVE since 2026-09-28).
+- [FLEET-DESIGN.md](records/FLEET-DESIGN.md) — the library family's
+  shape: the peer rule (decided 2026-11-02), and the proposed library
+  contract, parallelism model, composition concepts and candidate
+  libraries (PROPOSAL; a design record, not an effort in progress).
 
 ## Using these
 
