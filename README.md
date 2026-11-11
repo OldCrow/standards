@@ -12,10 +12,10 @@ undocumented deviation is a defect.
 | Document | Covers |
 |---|---|
 | [CMAKE-HOUSE-STYLE.md](CMAKE-HOUSE-STYLE.md) | Target-first CMake: naming, scoping, generator expressions, build types, options, the install contract, dependencies, presets |
-| [CI-HOUSE-STYLE.md](CI-HOUSE-STYLE.md) | GitHub Actions: runner budget, bounded parallelism, ISA hazards on hosted runners, action pinning, workflow linting, what CI must exercise, wheel builds |
+| [CI-HOUSE-STYLE.md](CI-HOUSE-STYLE.md) | GitHub Actions: runner budget and runner labels, bounded parallelism, ISA hazards on hosted runners, action pinning, workflow linting, pre-commit hooks and when to adopt a formatter, what CI must exercise (weekly canary included), wheel builds |
 | [DOC-CONVENTIONS.md](DOC-CONVENTIONS.md) | What `AGENTS.md`, `PLAN.md`, and the other repo documents are each for, and how they cross-reference |
 | [WINDOWS-TOOLCHAIN.md](WINDOWS-TOOLCHAIN.md) | Windows build environment (MSVC and clang-cl): one-time setup, Smart App Control and Defender, per-session MSVC activation, generator selection, the multi-config stale-Debug hazard, clang-cl selection and porting |
-| [SESSION-START.md](SESSION-START.md) | The architecture check every session opens with, and why a carried-over build path invalidates a validation leg |
+| [SESSION-START.md](SESSION-START.md) | The architecture check every session opens with, why a carried-over build path invalidates a validation leg, and enabling the commit hooks in a clone |
 | [NUMERICAL-KERNEL-PROMOTION.md](NUMERICAL-KERNEL-PROMOTION.md) | When a consumer finds a better numerical method: fix it locally, write it to be moved, file it with corvus, corvus decides by its doctrine, one copy afterwards |
 
 ## Records
