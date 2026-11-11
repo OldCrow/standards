@@ -47,6 +47,15 @@ silicon it draws. Rules 3 and 4 both follow from the second.
   fixed. The incident: libstats ran `gcc-13` + `lcov` and `clang-17` TSan
   on `ubuntu-latest`; the roll to ubuntu-26.04 (lcov 2.x, libstdc++ 15)
   failed both legs in 2026-11 with no source change.
+- **The same holds for `actions/setup-python`: never `python-version:
+  "3.x"` under a tool that is not maintained against new Pythons.** Name
+  a version, and say beside it when to raise it. The incident: libhmm's
+  pre-commit job asked for `"3.x"`, which began resolving to 3.15 in
+  2026-11; the `cmake-format` hook (cmakelang 0.6.13, no newer release)
+  crashes there with `ValueError: Cannot use capturing groups in
+  re.Scanner`, and the job read as a formatting failure on correctly
+  formatted files (libhmm PR 149; pinned to 3.14 in `653f5ed`). It fires
+  only when a changed file is CMake, so it stayed latent until one was.
 - **Every pinned label carries its reason in a comment beside it.** The
   legitimate reasons so far: a versioned tool (above), a deliberate oldest
   baseline (ewcalc's AppImage builds on `ubuntu-22.04` for its glibc
