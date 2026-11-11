@@ -193,6 +193,16 @@ Two traps, both cost real time:
   the bump PR" is expected, not a regression. Fix at source so it does
   not matter which file the next PR touches.
 
+A third, fixed: **`reviewdog: failed to post result: PATCH
+…/check-runs/<id>: 404 Not Found` is not a lint finding.** reviewdog
+creates its check-run and updates it about a second later; GitHub
+sometimes answers the update with 404 because the new check-run is not
+yet visible where the request lands. reviewdog 0.21.3 retries it, and
+`reviewdog/action-actionlint` bundles that from v1.83.0. Seven runs failed
+this way across four repos on 2026-11-11, all on v1.81.x or older; corvus,
+already on v1.83.0, had none in 40 runs. Keep the action at v1.83.0 or
+newer.
+
 Two shellcheck findings are known false positives — fix the *expression*,
 never the logic: SC2193 on `[[ "${{ matrix.x }}" == gcc* ]]` (actionlint
 substitutes a placeholder before shellcheck sees it; route matrix values
