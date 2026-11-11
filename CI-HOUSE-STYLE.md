@@ -208,12 +208,23 @@ resurrecting the old prefix.
 - Sanitizers (ASan+UBSan together, one Debug job) — not separate runners.
   Turn tools and examples off in that job; only `ctest` output counts, so
   instrumenting them buys nothing but compile time.
-- A **monthly canary**: `schedule:` cron, staggered across repos, so
-  runner-image and toolchain drift surfaces without waiting for a push.
-  Publish and packaging steps stay gated on tag refs, so scheduled runs
-  build and test only. Check job-level `if:` conditions actually admit
-  `github.event_name == 'schedule'` — otherwise the canary silently
-  no-ops.
+- A **weekly canary**: `schedule:` cron (Monday, minutes staggered across
+  repos), so runner-image and toolchain drift surfaces without waiting
+  for a push. Publish and packaging steps stay gated on tag refs, so
+  scheduled runs build and test only. Check job-level `if:` conditions
+  actually admit `github.event_name == 'schedule'` — otherwise the canary
+  silently no-ops.
+  - Weekly, not monthly, because Dependabot opens PRs weekly and a
+    monthly baseline cannot say which side broke. The incident
+    (2026-11): the ubuntu-26.04 roll failed libstats's coverage and TSan
+    legs, and it surfaced as red Dependabot PRs that looked like bad
+    bumps. A red PR against a green canary is the bump; a red canary is
+    the environment.
+  - Every scheduled workflow ends with a `canary-report` job that
+    `needs:` the others and, on `schedule` only, opens a
+    "Canary failed: <workflow>" issue or comments on the open one.
+    GitHub notifies only whoever last edited the cron line, which is not
+    a reliable signal.
 - Release and publish jobs trigger on tag push or `workflow_dispatch`
   only, never on PR. `paths-ignore` is not evaluated for a new tag, so it
   cannot skip a release.
