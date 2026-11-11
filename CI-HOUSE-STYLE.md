@@ -50,8 +50,9 @@ silicon it draws. Rules 3 and 4 both follow from the second.
 - **Every pinned label carries its reason in a comment beside it.** The
   legitimate reasons so far: a versioned tool (above), a deliberate oldest
   baseline (ewcalc's AppImage builds on `ubuntu-22.04` for its glibc
-  floor), and no floating label existing (`ubuntu-24.04-arm`). A pin with
-  no comment is a defect.
+  floor), and no floating label existing (`ubuntu-24.04-arm`, and
+  pylibhmm's `macos-15-intel` for native x86_64 wheels until libhmm can
+  be cross-built). A pin with no comment is a defect.
 - **The macOS runner image is not the macOS deployment target.**
   `MACOSX_DEPLOYMENT_TARGET` / `CMAKE_OSX_DEPLOYMENT_TARGET` set the
   oldest macOS the binary runs on and stay fixed while the image floats.
