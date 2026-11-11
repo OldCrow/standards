@@ -111,23 +111,34 @@ Each step is its own PR, and each PR's CI is the test.
 
 ## 4. Decisions for the owner
 
-- **[OPEN] clang-format in corvus and ewcalc.** Neither has a
-  `.clang-format`. Adopting one costs a whole-codebase reformat commit
-  per repo. The base hooks do not depend on it.
+- **[DECIDED 2026-11-11] clang-format in corvus and ewcalc: adopt.** One
+  reformat commit per repo, listed in `.git-blame-ignore-revs`. The
+  style file for each is still to be chosen (ewcalc: C++ core and Qt
+  frontend only; Swift and C# are out of scope).
 - **[OPEN] `cmake-format`.** The hook (cmakelang 0.6.13) has no newer
-  release and crashes on Python 3.15. Options: keep it behind a pinned
-  hook Python, replace it, or stop formatting CMake. No replacement has
-  been evaluated.
-- **[OPEN] libstats project hooks: port to Python or require Git Bash.**
-  Porting is four small scripts; requiring Git Bash is zero work now and
-  a recurring setup step.
-- **[OPEN] Hook-version updates.** Dependabot does not update
-  `.pre-commit-config.yaml` in the current fleet configuration. Whether
-  it can was not checked; the alternative is `pre-commit autoupdate` by
-  hand when the canary flags a problem.
-- **[OPEN] One active record.** `AGENTS.md` allows one ACTIVE record,
-  currently `CORVUS-ADOPTION-WORKPLAN.md`. If this is adopted, either it
-  waits, or that rule is relaxed for a second, unrelated effort.
+  release and crashes on Python 3.15. Options, none yet run on a fleet
+  repo:
+  - *gersemi* — actively released, ships a pre-commit hook, few options
+    by design. Cost: its style differs, so one CMake reformat commit in
+    libhmm and libstats, and `.cmake-format.yaml` does not carry over.
+  - *cmakefmt* — newer, a single Rust binary that presents itself as a
+    drop-in replacement for cmake-format, so the diff may be small. Cost:
+    young, and its claims are its own.
+  - *Keep cmake-format* behind a pinned hook Python. Zero work now; the
+    pin has to hold for as long as the hook is unmaintained.
+  - *Stop formatting CMake.* Removes the dependency; loses the check.
+  Recommended: trial gersemi and cmakefmt on libhmm, compare diff size,
+  then decide.
+- **[DECIDED 2026-11-11] libstats project hooks: port to Python.**
+- **[DECIDED 2026-11-11] Hook-version updates: Dependabot.** It has
+  supported a `pre-commit` package ecosystem since 2026-03-10; it updates
+  each hook's `rev` and skips `local` hooks. Add the ecosystem to each
+  repo's `dependabot.yml` with the config. Exact option syntax to be
+  confirmed against the Dependabot reference when the first repo adds it.
+- **[DECIDED 2026-11-11] One active record: not needed.** The rollout is
+  intended to finish in one working session, so this file never becomes
+  an ACTIVE record. It lands as a completed one, or is dropped once §2 is
+  in CI-HOUSE-STYLE.md.
 
 ## 5. Costs to expect
 
