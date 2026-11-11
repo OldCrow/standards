@@ -31,6 +31,37 @@ silicon it draws. Rules 3 and 4 both follow from the second.
 - Every workflow sets `concurrency: { group: ..., cancel-in-progress: true }`
   and `permissions: contents: read`; every job sets `timeout-minutes`.
 
+### Runner labels: float the label, or pin the image and the tool together
+
+- **Default to `*-latest`.** A pinned label hard-fails on the day GitHub
+  retires the image, and the job is cancelled before any step runs, so it
+  leaves no log. A floating label rolls instead; a roll that breaks
+  something fails a step, with a log. The incident: ewcalc pinned
+  `macos-14` with no stated reason; GitHub retired the image on
+  2026-11-02, and every PR was blocked on a required check that could not
+  start. The monthly canary did not help — it passed on 2026-11-01.
+- **A job that installs a versioned tool pins its image**
+  (`clang-17`, `gcc-13`, `clang-format-17`), and the two move in one
+  deliberate commit. A versioned tool on a floating label is the worst
+  mix: the image rolls underneath an environment the job assumes is
+  fixed. The incident: libstats ran `gcc-13` + `lcov` and `clang-17` TSan
+  on `ubuntu-latest`; the roll to ubuntu-26.04 (lcov 2.x, libstdc++ 15)
+  failed both legs in 2026-11 with no source change.
+- **Every pinned label carries its reason in a comment beside it.** The
+  legitimate reasons so far: a versioned tool (above), a deliberate oldest
+  baseline (ewcalc's AppImage builds on `ubuntu-22.04` for its glibc
+  floor), and no floating label existing (`ubuntu-24.04-arm`, and
+  pylibhmm's `macos-15-intel` for native x86_64 wheels until libhmm can
+  be cross-built). A pin with no comment is a defect.
+- **The macOS runner image is not the macOS deployment target.**
+  `MACOSX_DEPLOYMENT_TARGET` / `CMAKE_OSX_DEPLOYMENT_TARGET` set the
+  oldest macOS the binary runs on and stay fixed while the image floats.
+  No hosted runner executes on the deployment floor (macOS 13); the fleet
+  machines verify it.
+- Dependabot does not update `runs-on` labels. Review the pinned ones
+  when GitHub announces an image retirement, which it does about a month
+  ahead on the GitHub changelog.
+
 ## 2. Never `--parallel` unbounded
 
 `cmake --build --parallel` with no argument means unlimited `make -j`,
@@ -178,12 +209,23 @@ resurrecting the old prefix.
 - Sanitizers (ASan+UBSan together, one Debug job) — not separate runners.
   Turn tools and examples off in that job; only `ctest` output counts, so
   instrumenting them buys nothing but compile time.
-- A **monthly canary**: `schedule:` cron, staggered across repos, so
-  runner-image and toolchain drift surfaces without waiting for a push.
-  Publish and packaging steps stay gated on tag refs, so scheduled runs
-  build and test only. Check job-level `if:` conditions actually admit
-  `github.event_name == 'schedule'` — otherwise the canary silently
-  no-ops.
+- A **weekly canary**: `schedule:` cron (Monday, minutes staggered across
+  repos), so runner-image and toolchain drift surfaces without waiting
+  for a push. Publish and packaging steps stay gated on tag refs, so
+  scheduled runs build and test only. Check job-level `if:` conditions
+  actually admit `github.event_name == 'schedule'` — otherwise the canary
+  silently no-ops.
+  - Weekly, not monthly, because Dependabot opens PRs weekly and a
+    monthly baseline cannot say which side broke. The incident
+    (2026-11): the ubuntu-26.04 roll failed libstats's coverage and TSan
+    legs, and it surfaced as red Dependabot PRs that looked like bad
+    bumps. A red PR against a green canary is the bump; a red canary is
+    the environment.
+  - Every scheduled workflow ends with a `canary-report` job that
+    `needs:` the others and, on `schedule` only, opens a
+    "Canary failed: <workflow>" issue or comments on the open one.
+    GitHub notifies only whoever last edited the cron line, which is not
+    a reliable signal.
 - Release and publish jobs trigger on tag push or `workflow_dispatch`
   only, never on PR. `paths-ignore` is not evaluated for a new tag, so it
   cannot skip a release.
