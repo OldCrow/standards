@@ -30,6 +30,11 @@ At the start of every session, in order:
 3. **Reconfigure and rebuild** when the machine or architecture differs from
    the previous session's context. Do not build, install, or test before the
    check is complete.
+4. **Enable the commit hooks in this clone** if they are not already:
+   `python -m pre_commit install` (once per clone; `pip install pre-commit`
+   first if the module is missing). The hook is opt-in per clone, and CI's
+   `precommit` job is the gate either way
+   ([CI House Style §6](CI-HOUSE-STYLE.md#6-linting-the-workflows)).
 
 ## Architecture checks
 

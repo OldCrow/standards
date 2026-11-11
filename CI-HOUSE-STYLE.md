@@ -200,6 +200,79 @@ through step `env:` and compare the shell variable — also the
 injection-safe pattern), and deliberate word-splitting (ewcalc's keychain
 list), which takes a targeted `# shellcheck disable=` plus a reason.
 
+### Pre-commit hooks
+
+Adopted fleet-wide 2026-11-11. Every repo has a `.pre-commit-config.yaml`.
+
+- **One config, run in two places.** The local hook
+  (`python -m pre_commit install`) gives feedback before the commit
+  exists; a `precommit` job in `ci.yml` runs the same config and is the
+  gate. A local hook is opt-in per clone: libstats had the fullest hook
+  set in the fleet and, on the Windows machine, no installed hook and no
+  workflow running it, so nothing enforced it.
+- **CI runs every hook on all files, every time**
+  (`pre-commit run --all-files`). libhmm's job checked changed files
+  only, which is how a hook that crashed on Python 3.15 stayed hidden
+  until a PR touched CMake (libhmm PR 149), and how 9 of its 10 CMake
+  files drifted out of the style the hook was supposed to hold.
+- **Necessary and sufficient.** Every hook must be able to fail, and no
+  hook repeats another.
+  - *Show it fails.* Run each project hook against a planted violation
+    before trusting it. libstats carried three hooks that printed
+    warnings and always exited 0; in CI they were indistinguishable from
+    working ones.
+  - *No second opinion.* libstats's include-order hook expected the
+    reverse of the order `.clang-format` enforces and warned on almost
+    every correctly formatted file (335 warnings over 223 files). The
+    formatter owns include order; the hook was deleted.
+  - *No rule the repo does not follow.* Its copyright-header hook warned
+    on 756 files, and no C++ file carried a header. Deleted.
+- **Base hooks in every repo** (`pre-commit/pre-commit-hooks`):
+  `trailing-whitespace`, `end-of-file-fixer`, `mixed-line-ending
+  --fix=lf`, `check-yaml`, `check-json`, `check-merge-conflict`,
+  `check-case-conflict`, `check-added-large-files`. actionlint is not a
+  local hook: it needs a Go toolchain, and `lint-workflows.yml` already
+  runs it.
+- **`.gitattributes` with `* text=auto eol=lf` is a precondition.**
+  Without it a Windows checkout is CRLF and the line-ending fixer
+  rewrites the working tree on every run. ewcalc adds `eol=crlf` for the
+  files Visual Studio and PowerShell own.
+- **Captured output keeps its bytes.** Exclude generated data, oracle
+  reference sets and archived bench evidence from the fixers (corvus,
+  libstats). Two libstats evidence files hold lone carriage returns that
+  the line-ending fixer would have corrupted.
+- **Pins.** Every hook `rev` is a released tag; the job pins
+  `pre-commit` and names its Python (§1). Dependabot's `pre-commit`
+  ecosystem opens the update PRs. A linter has one pin: pylibstats and
+  pylibhmm took `ruff` out of the `lint` job when the hook arrived.
+- **Project hooks are Python**, not shell, so they run on a Windows
+  clone without Git Bash.
+- **CMake is formatted with gersemi.** cmake-format (cmakelang 0.6.13)
+  has no newer release and crashes on Python 3.15.
+- **No `actions/cache` for hook environments where zizmor objects.** Its
+  `cache-poisoning` audit rejected the cache step in ewcalc's and
+  libstats's `ci.yml`; those two jobs reinstall the hooks each run.
+
+Adopting a source formatter is a separate decision per repo:
+
+- **Tune the style to the code, measure, then decide.** corvus tried
+  both sibling styles (about 15,900 changed lines each) before a config
+  matching its own code brought that to about 1,800.
+- **A formatter can be the wrong tool.** ewcalc's C++ is hand-aligned
+  throughout, and clang-format has no option that keeps aligned call
+  arguments: with a tuned style, about 1,690 of 2,434 changed lines were
+  lost alignment. ewcalc has no source formatter, by decision.
+- **Reformatting is not behaviour-neutral for the tooling.** ewcalc's
+  first attempt split one-line `if` statements. That detached a
+  `cppcheck-suppress` comment from its line, and cut measured line
+  coverage from 77.0% to 68.4% against a 75% gate, with no code change.
+- **Guard tables.** clang-format rewrites a braced table to one element
+  per line. corvus wraps its coefficient and test-vector tables in
+  `// clang-format off` / `on`.
+- **The reformat is its own commit**, listed in `.git-blame-ignore-revs`,
+  and merged by a method that keeps its SHA (a merge commit; squash and
+  rebase both rewrite it).
+
 ## 7. Caching
 
 No caching by default — it is complexity that hides staleness. Add it
