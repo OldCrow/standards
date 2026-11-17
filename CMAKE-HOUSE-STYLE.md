@@ -161,6 +161,17 @@ files, pkg-config file. Never tests, examples, tools, or benchmarks.
 - Pattern: `find_package` first, pinned `FetchContent` fallback (corvus
   Highway, libstats GTest, pylib* parent libs). Pins are exact release tags,
   bumped deliberately (with revalidation where the pin tracks an audit).
+- The `find_package` version floor is the pinned version, and moves with it
+  in the same commit. Where the pin tracks an audit, the floor does too: an
+  older system copy that satisfied a lower floor would build code nobody
+  validated (or, after an API addition, fail to compile). State the same
+  floor in the installed config's `find_dependency`, since that is the copy
+  downstream consumers resolve. `SameMajorVersion` compatibility keeps later
+  releases acceptable, so the floor is a minimum, not a lock. Fleet check
+  2026-11-17: corvus → Highway 1.4 (floor = pin, both places); libstats →
+  corvus moves to 1.2 at the v1.2.0 pin bump (was 1.0 against a v1.0.1 pin);
+  libhmm writes its corvus floor at adoption; pylibstats floors on libstats,
+  not corvus, and inherits the corvus floor through libstats' config.
 - `FetchContent_Declare` uses `SYSTEM` (fetched headers must not trip our
   warnings) and `GIT_SHALLOW TRUE`.
 - When adding a subproject, force its component toggles off via
