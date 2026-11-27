@@ -17,6 +17,7 @@ undocumented deviation is a defect.
 | [WINDOWS-TOOLCHAIN.md](WINDOWS-TOOLCHAIN.md) | Windows build environment (MSVC and clang-cl): one-time setup, Smart App Control and Defender, per-session MSVC activation, generator selection, the multi-config stale-Debug hazard, clang-cl selection and porting |
 | [SESSION-START.md](SESSION-START.md) | The architecture check every session opens with, why a carried-over build path invalidates a validation leg, and enabling the commit hooks in a clone |
 | [NUMERICAL-KERNEL-PROMOTION.md](NUMERICAL-KERNEL-PROMOTION.md) | When a consumer finds a better numerical method: fix it locally, write it to be moved, file it with corvus, corvus decides by its doctrine, one copy afterwards |
+| [PERFORMANCE-MEASUREMENT.md](PERFORMANCE-MEASUREMENT.md) | **Proposed, not adopted.** Measuring a library function so the number is what a consumer gets: the shipped artefact, two build trees, the caller's shape, cold and warm; and two hot-path rules (no small aggregates by value behind a wrapper, rare-path constants behind a branch) |
 
 ## Records
 
